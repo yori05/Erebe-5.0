@@ -7,7 +7,6 @@
 #include "Ammo_Base.generated.h"
 
 class UStaticMeshComponent;
-class USceneComponent;
 class UProjectileMovementComponent;
 class AWeapon_Shooting_Base;
 class USphereComponent;
@@ -19,24 +18,26 @@ class EREBE_API AAmmo_Base : public AActor
 	
 	/**-----------------	Component Part		-----------------*/
 private :
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	USceneComponent* SceneRoot;
-
+	// Static mesh of this projectile 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* StaticMesh;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (AllowPrivateAccess = "true"))
-		USphereComponent* SphereCollider;
-
+	// Collier used to handle collision on the projectile
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		UProjectileMovementComponent* MovementComponent;
+	USphereComponent* SphereCollider;
+
+	// Simple projectile movement component to move this projectile
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UProjectileMovementComponent* MovementComponent;
 
 
 	/**-----------------	Variable Part		-----------------*/
 protected :
+	// Index of the projectile in the weapon pool
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	int32 ProjectileIndex;
 
+	// Weapon that shot and possess this projectile
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	AWeapon_Shooting_Base* WeaponOwner;
 
@@ -57,24 +58,34 @@ public:
 
 	/**-----------------	Callback Implementation Part	-----------------*/
 protected:
+	// Implementation of the action to take if the projectile overlap with a actor
 	UFUNCTION(BlueprintCallable)
 		virtual void OnSphereColliderBeginOverlap_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-
 	/**-----------------	Projectile Function Part		-----------------*/
 public :
+	// Define the action to take when the projectile is deactivate (can hide the projectile if necessary)
 	UFUNCTION(BlueprintCallable)
 	virtual void Inactive(bool bHide = true);
 
+	// Define the action to take when the projectile is activate (can show the projectile if necessary)
 	UFUNCTION(BlueprintCallable)
 	virtual void Active(bool bShow = true);
 
+	// Hide the mesh of the projectile (override this function if you have other mesh / fx to hide)
 	UFUNCTION(BlueprintCallable)
 	virtual void Hide();
 
+	// Show the mesh of the projectile (override this function if you have other mesh / fx to show)
 	UFUNCTION(BlueprintCallable)
 	virtual void Show();
 
+
+protected:
+
+	// Define the behavior of the projectile when he hit a valid actor
+	UFUNCTION(BlueprintCallable)
+		virtual void HitValideActor(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	/**-----------------	Variable Accessor Part			-----------------*/
 public : 
@@ -92,8 +103,6 @@ public :
 public :
 	/** Return the Mesh Subobject */
 	FORCEINLINE UStaticMeshComponent* GetStaticMeshComponent() const { return StaticMesh; }
-	/** Return the SceneRoot Subobject */
-	FORCEINLINE USceneComponent* GetSceneRootComponent() const { return SceneRoot; }
 	/** Return sphere collider  subobject */
 	FORCEINLINE USphereComponent* GetSphereColliderComponent() { return SphereCollider; }
 

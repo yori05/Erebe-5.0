@@ -8,16 +8,20 @@
 AGrappleHook_Gun::AGrappleHook_Gun()
 {
 	// Try to set the GrappleHook ammo blueprint as the projectile class, if want to use a other class need to be set in the blueprint of this class
-	static ConstructorHelpers::FClassFinder<AAmmo_Base> ProjectileDefaultClass(TEXT("/Game/BlueprintClasses/Ammo/Ammo_GrappleHook_BP"));
-
-	if (ProjectileDefaultClass.Class != nullptr)
+	
+	if (ProjectileClass == nullptr)
 	{
-		ProjectileClass = ProjectileDefaultClass.Class;
-	}
-	else
-	{
-		// In case we can't find the blueprint the c++ class will be set
-		ProjectileClass = AGrappleHook_Ammo::StaticClass();
+		static ConstructorHelpers::FClassFinder<AAmmo_Base> ProjectileDefaultClass(TEXT("/Game/BlueprintClasses/Ammo/Ammo_GrappleHook_BP"));
+		
+		if (ProjectileDefaultClass.Class != nullptr)
+		{
+			ProjectileClass = ProjectileDefaultClass.Class;
+		}
+		else
+		{
+			// In case we can't find the blueprint the c++ class will be set
+			ProjectileClass = AGrappleHook_Ammo::StaticClass();
+		}
 	}
 
 	//Spawn and set the cable component
@@ -49,6 +53,6 @@ void AGrappleHook_Gun::Shoot()
 {
 	Super::Shoot();
 
-	Cable->SetVisibility(true);
+	//Cable->SetVisibility(true);
 
 }

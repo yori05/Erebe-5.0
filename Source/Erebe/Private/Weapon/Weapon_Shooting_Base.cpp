@@ -40,14 +40,15 @@ void AWeapon_Shooting_Base::IntializeProjectilePool()
 {
 	auto World = GetWorld();
 	AAmmo_Base* Temp = nullptr;
+
 	if (PoolSize > 0 && World != nullptr)
 	{
 		for (int i = 0; i < PoolSize; i++)
 		{
 			Temp = World->SpawnActor<AAmmo_Base>(ProjectileClass, GetActorTransform());
-			Temp->Inactive();
 			Temp->SetWeaponOwner(this);
 			Temp->SetProjectileIndex(i);
+			Temp->Inactive();
 			ProjectilePool[i] = Temp;
 			AvaibleProjectilePool[i] = Temp;
 		}
@@ -82,8 +83,9 @@ int32 AWeapon_Shooting_Base::GetPoolSize()
 void AWeapon_Shooting_Base::Shoot()
 {
 	auto World = GetWorld();
-	FVector ProjectileLocation;
+	FVector ProjectileLocation(-400, - 340, 150);
 	FRotator ProjectileRotation;
+
 
 	if (bUseOwnerImpactpoint && OwnerImpactPoint != nullptr)
 	{
@@ -97,7 +99,7 @@ void AWeapon_Shooting_Base::Shoot()
 	{
 		ProjectileLocation = GetActorLocation();
 	}
-
+	
 	if (bUseOwnerViewpoint && OwnerViewpont != nullptr)
 	{
 		ProjectileRotation = OwnerViewpont->GetComponentRotation();
@@ -118,6 +120,7 @@ void AWeapon_Shooting_Base::Shoot()
 
 	ProjectilePool[PoolIndex]->SetActorLocation(ProjectileLocation);
 	ProjectilePool[PoolIndex]->SetActorRotation(ProjectileRotation);
+	ProjectilePool[PoolIndex]->Show();
 	ProjectilePool[PoolIndex]->Active();
 	PoolIndex = (PoolIndex + 1 >= ProjectilePool.Num()) ? 0 : PoolIndex + 1;
 }
