@@ -343,13 +343,24 @@ void AErebeCharacter::StopRunning()
 
 }
 
-void AErebeCharacter::Fire()
+void AErebeCharacter::FirePress()
 {
 	AWeapon_Shooting_Base* Weapon = Cast<AWeapon_Shooting_Base>(EquipedWeapon);
 
 	if (EquipedWeapon != nullptr && Weapon != nullptr)
 	{
-		Weapon->Shoot();
+		Weapon->FirePress();
+	}
+}
+
+
+void AErebeCharacter::FireRelease()
+{
+	AWeapon_Shooting_Base* Weapon = Cast<AWeapon_Shooting_Base>(EquipedWeapon);
+
+	if (EquipedWeapon != nullptr && Weapon != nullptr)
+	{
+		Weapon->FireRelease();
 	}
 }
 

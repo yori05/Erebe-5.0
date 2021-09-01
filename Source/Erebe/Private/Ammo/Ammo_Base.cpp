@@ -29,8 +29,8 @@ AAmmo_Base::AAmmo_Base(const FObjectInitializer& ObjectInitializer)
 	MovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("MovementComponent"));
 	if (MovementComponent != nullptr)
 	{
-		MovementComponent->InitialSpeed = 250.f;
-		MovementComponent->MaxSpeed = 500.f;
+		MovementComponent->InitialSpeed = 1500.f;
+		MovementComponent->MaxSpeed = 1500.f;
 		MovementComponent->bRotationFollowsVelocity = true;
 	}
 }

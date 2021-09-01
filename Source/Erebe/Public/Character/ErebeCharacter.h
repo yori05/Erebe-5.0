@@ -167,10 +167,16 @@ public :
 	virtual void StopRunning();
 
 	/**
-	 *  Called to fire with the weapon equiped if she can fire
-	 */
+	*  Called to fire with the weapon equiped if she can fire
+	*/
 	UFUNCTION(BlueprintCallable)
-		virtual void Fire();
+		virtual void FirePress();
+
+	/**
+	*  Called to fire with the weapon equiped if she can fire
+	*/
+	UFUNCTION(BlueprintCallable)
+		virtual void FireRelease();
 
 	/**-----------------	State Part		-----------------*/
 protected :

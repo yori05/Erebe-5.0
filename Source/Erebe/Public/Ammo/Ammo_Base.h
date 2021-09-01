@@ -90,12 +90,13 @@ protected:
 	/**-----------------	Variable Accessor Part			-----------------*/
 public : 
 	
+	// Set the index of this projectile
 	FORCEINLINE	void SetProjectileIndex(int32 NewProjectileIndex) { ProjectileIndex = NewProjectileIndex; }
-
+	// Return the projectile index
 	FORCEINLINE	int32 GetProjectileIndex() { return ProjectileIndex; }
-
+	// Set the weapon owner of this projectile
 	FORCEINLINE	void SetWeaponOwner(AWeapon_Shooting_Base* NewWeaponOwner) { WeaponOwner = NewWeaponOwner; }
-
+	// Get the weapon owner of this projectile
 	FORCEINLINE	AWeapon_Shooting_Base* GetWeaponOwner() { return WeaponOwner; }
 
 

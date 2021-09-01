@@ -139,6 +139,17 @@ protected : /** Input Binding */
 	void PunchInput();
 
 	/**
+	*  Called via input to fire1 pressed, will call the character fire press action
+	*/
+	UFUNCTION(BlueprintCallable)
+		void FirePressInput();
+	/**
+	*  Called via input to fire1 released, will call the character fire release action
+	*/
+	UFUNCTION(BlueprintCallable)
+		void FireReleaseInput();
+
+	/**
 	 *  Called via input to interact pressed, will call the character Interact action
 	 */
 	UFUNCTION(BlueprintCallable)

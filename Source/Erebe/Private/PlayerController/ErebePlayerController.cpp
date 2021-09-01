@@ -52,7 +52,8 @@ void AErebePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Focus", IE_Released, this, &AErebePlayerController::StopFocusInput);
 
 	/** Fight Input */
-	InputComponent->BindAction("Fire", IE_Pressed, this, &AErebePlayerController::PunchInput);
+	InputComponent->BindAction("Fire", IE_Pressed, this, &AErebePlayerController::FirePressInput);
+	InputComponent->BindAction("Fire", IE_Released, this, &AErebePlayerController::FireReleaseInput);
 
 	/** Interaction Input */
 	InputComponent->BindAction("Interact", IE_Pressed, this, &AErebePlayerController::InteractInput);
@@ -183,6 +184,27 @@ void AErebePlayerController::PunchInput()
 		MyPawn->Punch();
 	}
 }
+
+void AErebePlayerController::FirePressInput()
+{
+	auto MyPawn = GetPawn<AErebeCharacter>();
+
+	if (IsValid(MyPawn))
+	{
+		MyPawn->FirePress();
+	}
+}
+
+void AErebePlayerController::FireReleaseInput()
+{
+	auto MyPawn = GetPawn<AErebeCharacter>();
+
+	if (IsValid(MyPawn))
+	{
+		MyPawn->FireRelease();
+	}
+}
+
 
 void AErebePlayerController::InteractInput()
 {
