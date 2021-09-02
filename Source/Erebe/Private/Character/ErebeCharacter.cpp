@@ -4,6 +4,7 @@
 #include "Character/ErebeCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -37,6 +38,22 @@ AErebeCharacter::AErebeCharacter(const FObjectInitializer& ObjectInitializer)
 	// Set the size for the collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.f);
 
+	// Create First person Skeletal Mesh 
+	FPMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FPMesh"));
+	if (FPMesh != nullptr)
+	{
+		FPMesh->SetupAttachment(RootComponent);
+		FPMesh->SetOnlyOwnerSee(true);
+	}
+
+	// Create First person Camera 
+	FPCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FPCamera"));
+	if (FPCamera != nullptr)
+	{
+		FPCamera->SetupAttachment(FPMesh);
+	}
+
+
 	// Configure Character Movement Component
 	ErebeCharacterMovement = Cast<UErebeCharacterMovementComponent>(GetCharacterMovement());
 	if (ErebeCharacterMovement)
@@ -63,8 +80,11 @@ AErebeCharacter::AErebeCharacter(const FObjectInitializer& ObjectInitializer)
 	
 	//Create a Damage Hitbox component
 	DamageHitbox = CreateDefaultSubobject<UBoxComponent>(TEXT("DamageHitbox"));
-	DamageHitbox->SetupAttachment(RootComponent);					// We attach it to the root component so he follow the character
-	DamageHitbox->SetCollisionProfileName(TEXT("OverlapAllDynamic")); //We make it available to target all dynamic
+	if (DamageHitbox != nullptr)
+	{
+		DamageHitbox->SetupAttachment(RootComponent);					// We attach it to the root component so he follow the character
+		DamageHitbox->SetCollisionProfileName(TEXT("OverlapAllDynamic")); //We make it available to target all dynamic
+	}
 
 	//Create a Dialogue component
 	DialogueComponent = CreateDefaultSubobject<UDialogueComponent>(TEXT("DialogueComp"));
@@ -73,6 +93,8 @@ AErebeCharacter::AErebeCharacter(const FObjectInitializer& ObjectInitializer)
 	{
 		InteractiveComponent->TryToAddAInteraction(DialogueComponent, INTERACTIVE_Dialogue, true);
 	}
+
+	
 	// Note : The Skeletal Mesh and the AnimBblueprint references on the Mesh Component (inherited from Character)
 	// will be set on the blueprint asset (to avoid direct content reference in c++)
 }
@@ -94,6 +116,15 @@ void AErebeCharacter::BeginPlay()
 			EquipedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("grip_r"));
 			EquipedWeapon->SetOwnerViewpoint(GetFollowCamera());
 		}
+	}
+
+	if (bIsInFP)
+	{
+		PassInFirstPerson();
+	}
+	else
+	{
+		PassInThirdPerson();
 	}
 }
 
@@ -362,6 +393,50 @@ void AErebeCharacter::FireRelease()
 	{
 		Weapon->FireRelease();
 	}
+}
+
+void AErebeCharacter::PassInThirdPerson()
+{
+	if (FPMesh != nullptr)
+	{
+		FPMesh->SetOwnerNoSee(true);
+	}
+	if (GetMesh() != nullptr)
+	{
+		GetMesh()->SetOwnerNoSee(false);
+	}
+	if (FPCamera != nullptr)
+	{
+		FPCamera->Deactivate();
+	}
+	if (FollowCamera != nullptr)
+	{
+		FollowCamera->Activate();
+	}
+
+	bIsInFP = false;
+}
+
+void AErebeCharacter::PassInFirstPerson()
+{
+	if (FPMesh != nullptr)
+	{
+		FPMesh->SetOwnerNoSee(false);
+	}
+	if (GetMesh() != nullptr)
+	{
+		GetMesh()->SetOwnerNoSee(true);
+	}
+	if (FPCamera != nullptr)
+	{
+		FPCamera->Activate();
+	}
+	if (FollowCamera != nullptr)
+	{
+		FollowCamera->Deactivate();
+	}
+
+	bIsInFP = true;
 }
 
 

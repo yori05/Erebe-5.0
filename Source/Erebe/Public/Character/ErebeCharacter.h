@@ -50,7 +50,16 @@ class EREBE_API AErebeCharacter : public AInteractiveCharacter
 {
 	GENERATED_BODY()
 
+		/**-----------------	Component Part		-----------------*/
 private :
+	/** First person mesh  */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class USkeletalMeshComponent* FPMesh;
+
+	/**	First person camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UCameraComponent* FPCamera;
+
 	/**	Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
@@ -75,6 +84,7 @@ private :
 	UPROPERTY(Category = "Dialogue", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class UDialogueComponent* DialogueComponent;
 
+	/**-----------------	Variable Part		-----------------*/
 protected :
 	/** CharacterState used to define the state of this character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", meta = (AllowPrivateAccess = "true"))
@@ -91,13 +101,19 @@ protected :
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
 	AWeapon_Base* EquipedWeapon;
 
+	/** Check if can pass in fly mode */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
 		bool bCanFly;
+
+	/** Check if the character is in first person or third */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FirstP/ThirdP")
+	bool bIsInFP;
 
 public:
 	/** Name of the HealthComponent. Use this name if you want to use a different class (with ObjectInitializer.SetDefaultSubobjectClass). */
 	static FName HealthComponentName;
 
+	/**-----------------	Inherit Function Part		-----------------*/
 public :
 	// Sets default values for this character's properties (can use the ObjectInitializer to change the character movement component class
 	AErebeCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
@@ -110,6 +126,8 @@ protected :
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	/**-----------------	Erebe Character Function Part		-----------------*/
 
 	/**-----------------	Action Part		-----------------*/
 public :
@@ -178,6 +196,14 @@ public :
 	UFUNCTION(BlueprintCallable)
 		virtual void FireRelease();
 
+	// Called to use the follow camera and the third person mesh
+	UFUNCTION(BlueprintCallable)
+		virtual void PassInThirdPerson();
+
+	// Called to use the first person mesh and camera
+	UFUNCTION(BlueprintCallable)
+		virtual void PassInFirstPerson();
+
 	/**-----------------	State Part		-----------------*/
 protected :
 	/** Perform State on the character will be called by the Tick function every frame */
@@ -231,12 +257,16 @@ public :
 	UFUNCTION(BlueprintCallable)
 	void SetDeadState();
 
+	/**-----------------	Component Accessor Part		-----------------*/
 protected :
-	
 	/** Returns ErebeCharacterMovement subobject **/
 	FORCEINLINE class UErebeCharacterMovementComponent* GetErebeCharacterMovement() const { return ErebeCharacterMovement; }
 
 public :
+	/** Returns First person mesh subobject **/
+	FORCEINLINE class USkeletalMeshComponent* GetFPMesh() const { return FPMesh; }
+	/** Returns First person Camera subobject **/
+	FORCEINLINE class UCameraComponent* GetFPCamera() const { return FPCamera; }
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
