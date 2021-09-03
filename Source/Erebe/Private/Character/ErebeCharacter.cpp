@@ -51,6 +51,7 @@ AErebeCharacter::AErebeCharacter(const FObjectInitializer& ObjectInitializer)
 	if (FPCamera != nullptr)
 	{
 		FPCamera->SetupAttachment(FPMesh);
+		FPCamera->bUsePawnControlRotation = true;
 	}
 
 
@@ -475,6 +476,7 @@ void AErebeCharacter::StartFreeState(EErebeCharacterState PreviousCharacterState
 		ErebeCharacterMovement->bOrientRotationToMovement = true;	// Character moves in the direction of the input ...
 		bUseControllerRotationYaw = false;							// The controller don't change the character orientation
 	}
+
 	ErebeCharacterMovement->SetMovementMode(MOVE_Walking);
 
 }
