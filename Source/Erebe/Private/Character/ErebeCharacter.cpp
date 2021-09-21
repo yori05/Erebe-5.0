@@ -96,6 +96,8 @@ AErebeCharacter::AErebeCharacter(const FObjectInitializer& ObjectInitializer)
 	}
 
 	
+	bUseRootMotionAnimation = true;
+
 	// Note : The Skeletal Mesh and the AnimBblueprint references on the Mesh Component (inherited from Character)
 	// will be set on the blueprint asset (to avoid direct content reference in c++)
 }
@@ -139,7 +141,11 @@ void AErebeCharacter::Tick(float DeltaTime)
 
 void AErebeCharacter::MoveForward(float Value)
 {
-	if ((Controller != nullptr) && (Value != 0.f))
+	if (bUseRootMotionAnimation)
+	{
+		MotionInput.Z += Value;
+	}
+	else if ((Controller != nullptr) && (Value != 0.f))
 	{
 		// Use the controller rotation ...
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -155,7 +161,11 @@ void AErebeCharacter::MoveForward(float Value)
 
 void AErebeCharacter::MoveRight(float Value)
 {
-	if ((Controller != nullptr) && (Value != 0.f))
+	if (bUseRootMotionAnimation)
+	{
+		MotionInput.X += Value;
+	}
+	else if ((Controller != nullptr) && (Value != 0.f))
 	{
 		// Use the controller rotation ...
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -172,8 +182,12 @@ void AErebeCharacter::MoveRight(float Value)
 
 void AErebeCharacter::MoveUp(float Value)
 {
+	if (bUseRootMotionAnimation)
+	{
+		MotionInput.Y += Value;
+	}
 	// Need to check this function (maybe she isn't functional with the yaw direction and need to use a other one like the pitch)
-	if ((Controller != nullptr) && (Value != 0.f))
+	else if ((Controller != nullptr) && (Value != 0.f))
 	{
 		// Use the controller rotation ...
 		const FRotator Rotation = Controller->GetControlRotation();

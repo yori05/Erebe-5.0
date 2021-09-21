@@ -98,16 +98,23 @@ protected :
 	TSubclassOf<AWeapon_Base> WeaponClass;
 
 	/** The weapon currently used by this character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	AWeapon_Base* EquipedWeapon;
+
+	/** The direction of the movement for this character used in case we use the root motion animation */
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Input")
+	FVector MotionInput;
 
 	/** Check if can pass in fly mode */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
-		bool bCanFly;
+	bool bCanFly;
 
 	/** Check if the character is in first person or third */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FirstP/ThirdP")
 	bool bIsInFP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	bool bUseRootMotionAnimation;
 
 public:
 	/** Name of the HealthComponent. Use this name if you want to use a different class (with ObjectInitializer.SetDefaultSubobjectClass). */
@@ -257,12 +264,22 @@ public :
 	UFUNCTION(BlueprintCallable)
 	void SetDeadState();
 
+	/**-----------------	Variable Accessor Part		-----------------*/
+public :
+	/** Returns the input motion vector **/
+	FORCEINLINE FVector GetInputMotionVector() const { return MotionInput; }
+	/** Returns the boolean to know if the character can fly **/
+	FORCEINLINE bool GetCanFly() const { return bCanFly; }
+	/** Returns if the character is currently using fps or tps **/
+	FORCEINLINE bool GetIsInFirstPerson() const { return bIsInFP; }
+	/** Returns the boolean to know if the character root motion based animation **/
+	FORCEINLINE bool GetUseRootMotionAnimation() const { return bUseRootMotionAnimation; }
+
+
 	/**-----------------	Component Accessor Part		-----------------*/
-protected :
+public :
 	/** Returns ErebeCharacterMovement subobject **/
 	FORCEINLINE class UErebeCharacterMovementComponent* GetErebeCharacterMovement() const { return ErebeCharacterMovement; }
-
-public :
 	/** Returns First person mesh subobject **/
 	FORCEINLINE class USkeletalMeshComponent* GetFPMesh() const { return FPMesh; }
 	/** Returns First person Camera subobject **/
