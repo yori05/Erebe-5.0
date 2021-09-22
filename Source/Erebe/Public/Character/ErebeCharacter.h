@@ -50,6 +50,42 @@ class EREBE_API AErebeCharacter : public AInteractiveCharacter
 {
 	GENERATED_BODY()
 
+	/**-----------------	Variable Part		-----------------*/
+protected:
+	/** CharacterState used to define the state of this character */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", meta = (AllowPrivateAccess = "true"))
+		TEnumAsByte<enum EErebeCharacterState> CharacterState = EErebeCharacterState::CHARSTATE_Free;
+
+	/**
+	* Saved class for the weapon equipped automatically spawn in the begin play of this actor.
+	* if set as null won't spawn a weapon
+	*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		TSubclassOf<AWeapon_Base> WeaponClass;
+
+	/** The weapon currently used by this character */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+		AWeapon_Base* EquipedWeapon;
+
+	/** The direction of the movement for this character used in case we use the root motion animation */
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Input")
+		FVector MotionInput;
+
+	/** Check if can pass in fly mode */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+		bool bCanFly;
+
+	/** Check if the character is in first person or third */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FirstP/ThirdP")
+		bool bIsInFP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+		bool bUseRootMotionAnimation;
+
+public:
+	/** Name of the HealthComponent. Use this name if you want to use a different class (with ObjectInitializer.SetDefaultSubobjectClass). */
+	static FName HealthComponentName;
+
 		/**-----------------	Component Part		-----------------*/
 private :
 	/** First person mesh  */
@@ -83,42 +119,6 @@ private :
 	/** Component used to handle Dialogue */
 	UPROPERTY(Category = "Dialogue", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class UDialogueComponent* DialogueComponent;
-
-	/**-----------------	Variable Part		-----------------*/
-protected :
-	/** CharacterState used to define the state of this character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", meta = (AllowPrivateAccess = "true"))
-	TEnumAsByte<enum EErebeCharacterState> CharacterState = EErebeCharacterState::CHARSTATE_Free;
-
-	/**
-	* Saved class for the weapon equipped automatically spawn in the begin play of this actor.
-	* if set as null won't spawn a weapon
-	*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	TSubclassOf<AWeapon_Base> WeaponClass;
-
-	/** The weapon currently used by this character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-	AWeapon_Base* EquipedWeapon;
-
-	/** The direction of the movement for this character used in case we use the root motion animation */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Input")
-	FVector MotionInput;
-
-	/** Check if can pass in fly mode */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
-	bool bCanFly;
-
-	/** Check if the character is in first person or third */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FirstP/ThirdP")
-	bool bIsInFP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	bool bUseRootMotionAnimation;
-
-public:
-	/** Name of the HealthComponent. Use this name if you want to use a different class (with ObjectInitializer.SetDefaultSubobjectClass). */
-	static FName HealthComponentName;
 
 	/**-----------------	Inherit Function Part		-----------------*/
 public :
@@ -192,13 +192,13 @@ public :
 	virtual void StopRunning();
 
 	/**
-	*  Called to fire with the weapon equiped if she can fire
+	*  Called to fire with the weapon equipped if she can fire
 	*/
 	UFUNCTION(BlueprintCallable)
 		virtual void FirePress();
 
 	/**
-	*  Called to fire with the weapon equiped if she can fire
+	*  Called to fire with the weapon equipped if she can fire
 	*/
 	UFUNCTION(BlueprintCallable)
 		virtual void FireRelease();
