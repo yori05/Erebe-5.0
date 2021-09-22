@@ -7,6 +7,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Weapon/Weapon_Base.h"
+#include "Weapon/Weapon_Shooting_Base.h"
 #include "Engine/World.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogChararacterFPS, Warning, All);
@@ -107,6 +108,40 @@ void ACharacter_FPS::Jump()
 void ACharacter_FPS::StopJumping()
 {
 	Super::StopJumping();
+}
+
+/**
+*  Called to fire with the weapon equipped if she can fire
+*/
+UFUNCTION(BlueprintCallable)
+void ACharacter_FPS::FirePress()
+{
+	if (EquippedWeapon != nullptr)
+	{
+		auto ShootingWeapon = Cast<AWeapon_Shooting_Base>(EquippedWeapon);
+
+		if (ShootingWeapon != nullptr)
+		{
+			ShootingWeapon->FirePress();
+		}
+	}
+}
+
+/**
+*  Called to fire with the weapon equipped if she can fire
+*/
+UFUNCTION(BlueprintCallable)
+void ACharacter_FPS::FireRelease()
+{
+	if (EquippedWeapon != nullptr)
+	{
+		auto ShootingWeapon = Cast<AWeapon_Shooting_Base>(EquippedWeapon);
+
+		if (ShootingWeapon != nullptr)
+		{
+			ShootingWeapon->FireRelease();
+		}
+	}
 }
 
 /**-----------------	Weapon Function Part		-----------------*/

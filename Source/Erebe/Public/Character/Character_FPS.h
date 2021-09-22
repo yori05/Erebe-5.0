@@ -70,17 +70,17 @@ public:
 	// Called to make the character stop jump
 	virtual void StopJumping() override;
 
-//	/**
-//	*  Called to fire with the weapon equipped if she can fire
-//	*/
-//	UFUNCTION(BlueprintCallable)
-//		virtual void FirePress();
-//
-//	/**
-//	*  Called to fire with the weapon equipped if she can fire
-//	*/
-//	UFUNCTION(BlueprintCallable)
-//		virtual void FireRelease();
+	/**
+	*  Called to fire with the weapon equipped if she can fire
+	*/
+	UFUNCTION(BlueprintCallable)
+	virtual void FirePress();
+
+	/**
+	*  Called to fire with the weapon equipped if she can fire
+	*/
+	UFUNCTION(BlueprintCallable)
+	virtual void FireRelease();
 
 	/**-----------------	Weapon Function Part		-----------------*/
 public:

@@ -37,6 +37,10 @@ void APlayerController_FPS::SetupInputComponent()
 	InputComponent->BindAction("Jump", IE_Pressed, this, &APlayerController_FPS::JumpInput);
 	InputComponent->BindAction("Jump", IE_Released, this, &APlayerController_FPS::StopJumpingInput);
 
+	/** Fight Input */
+	InputComponent->BindAction("Fire", IE_Pressed, this, &APlayerController_FPS::FirePressInput);
+	InputComponent->BindAction("Fire", IE_Released, this, &APlayerController_FPS::FireReleaseInput);
+
 }
 
 /**-----------------	Input Function Part		-----------------*/
@@ -97,5 +101,25 @@ void APlayerController_FPS::StopJumpingInput()
 	if (IsValid(MyPawn))
 	{
 		MyPawn->StopJumping();
+	}
+}
+
+void APlayerController_FPS::FirePressInput()
+{
+	auto MyPawn = GetPawn<ACharacter_FPS>();
+
+	if (IsValid(MyPawn))
+	{
+		MyPawn->FirePress();
+	}
+}
+
+void APlayerController_FPS::FireReleaseInput()
+{
+	auto MyPawn = GetPawn<ACharacter_FPS>();
+
+	if (IsValid(MyPawn))
+	{
+		MyPawn->FireRelease();
 	}
 }
