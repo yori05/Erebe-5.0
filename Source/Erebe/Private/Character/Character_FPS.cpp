@@ -6,6 +6,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Weapon/Weapon_Base.h"
+#include "Engine/World.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogChararacterFPS, Warning, All);
 
@@ -49,6 +51,7 @@ void ACharacter_FPS::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	SpawnAndEquipDefaultWeapon();
 }
 
 // Called every frame
@@ -104,4 +107,81 @@ void ACharacter_FPS::Jump()
 void ACharacter_FPS::StopJumping()
 {
 	Super::StopJumping();
+}
+
+/**-----------------	Weapon Function Part		-----------------*/
+/**
+ * Spawn and equip a new weapon on this character and release or destroy the previous one
+ * if @NewWeaponClass null don't spawn any weapon
+ * if @bRealeasePreviousWeapon is set as false destroy the previous weapon
+ */
+void ACharacter_FPS::SpawnAndEquipWeapon(TSubclassOf<AWeapon_Base> NewWeaponClass, bool bReleasePreviousWeapon)
+{
+	auto World = GetWorld();
+
+	AWeapon_Base* NewWeapon = nullptr;
+
+	if (World && NewWeaponClass != nullptr)
+	{
+		NewWeapon = World->SpawnActor<AWeapon_Base>(NewWeaponClass, GetActorTransform());
+		//EquippedWeapon = World->SpawnActor<AWeapon_Base>(WeaponClass, GetActorTransform());
+
+	}
+
+	EquipWeapon(NewWeapon, bReleasePreviousWeapon);
+}
+
+/**
+ * Spawn and equip a new weapon on this character and release or destroy the previous one
+ * if @bRealeasePreviousWeapon is set as false destroy the previous weapon
+ */
+void ACharacter_FPS::SpawnAndEquipDefaultWeapon(bool bReleasePreviousWeapon)
+{
+	SpawnAndEquipWeapon(DefaultWeaponClass, bReleasePreviousWeapon);
+}
+
+/**
+ * Equip a weapon already spawn and release or destroy the equipped weapon
+ * if @bRealeasePreviousWeapon is set as false destroy the previous weapon
+ */
+void ACharacter_FPS::EquipWeapon(AWeapon_Base* NewWeapon, bool bReleasePreviousWeapon)
+{
+	if (EquippedWeapon != nullptr)
+	{
+		if (bReleasePreviousWeapon)
+		{
+			ReleaseWeapon();
+		}
+		else
+		{
+			DestroyWeapon();
+		}
+	}
+	if (NewWeapon != nullptr)
+	{
+		EquippedWeapon = NewWeapon;
+		EquippedWeapon->SetActorOwner(this);
+		EquippedWeapon->AttachToComponent(GetMesh1P(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("grip_r"));
+		EquippedWeapon->SetOwnerViewpoint(GetCamera1P());
+	}
+}
+
+/**
+ * Release the equipped weapon
+ */
+void ACharacter_FPS::ReleaseWeapon()
+{
+	EquippedWeapon->SetActorOwner(nullptr);
+	EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	EquippedWeapon->SetOwnerViewpoint(nullptr);
+}
+
+/**
+ * Destroy the equipped weapon
+ */
+void ACharacter_FPS::DestroyWeapon()
+{
+	ReleaseWeapon();
+
+	EquippedWeapon->Destroy();
 }
