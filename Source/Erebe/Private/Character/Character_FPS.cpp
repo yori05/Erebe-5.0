@@ -206,9 +206,7 @@ void ACharacter_FPS::EquipWeapon(AWeapon_Base* NewWeapon, bool bReleasePreviousW
  */
 void ACharacter_FPS::ReleaseWeapon()
 {
-	EquippedWeapon->SetActorOwner(nullptr);
-	EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	EquippedWeapon->SetOwnerViewpoint(nullptr);
+	EquippedWeapon->DissociatesToActorOwner();
 }
 
 /**

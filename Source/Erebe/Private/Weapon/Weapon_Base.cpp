@@ -6,6 +6,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
 
+/**-----------------	Constructor Part		-----------------*/
 // Sets default values
 AWeapon_Base::AWeapon_Base(const FObjectInitializer& ObjectInitializer)
 {
@@ -23,6 +24,7 @@ AWeapon_Base::AWeapon_Base(const FObjectInitializer& ObjectInitializer)
 
 }
 
+/**-----------------	Inherit Function Part		-----------------*/
 // Called when the game starts or when spawned
 void AWeapon_Base::BeginPlay()
 {
@@ -37,37 +39,8 @@ void AWeapon_Base::Tick(float DeltaTime)
 
 }
 
-void AWeapon_Base::SetActorOwner(AActor* NewActorOwner)
-{
-	ActorOwner = NewActorOwner;
-}
-
-AActor* AWeapon_Base::GetActorOwner()
-{
-	return ActorOwner;
-}
-
-void AWeapon_Base::SetOwnerViewpoint(USceneComponent* NewOwnerViewpoint, bool bShouldUseIt)
-{
-	OwnerViewpont = NewOwnerViewpoint;	
-	bUseOwnerViewpoint = OwnerViewpont != nullptr && bShouldUseIt;
-}
-
-USceneComponent* AWeapon_Base::GetOwnerViewpoint()
-{
-	return OwnerViewpont;
-}
-
-void AWeapon_Base::SetOwnerImpactpoint(USceneComponent* NewOwnerImpactpoint, bool bShouldUseIt)
-{
-	OwnerImpactPoint = NewOwnerImpactpoint;
-	bUseOwnerImpactpoint = OwnerImpactPoint != nullptr && bShouldUseIt;
-}
-
-USceneComponent* AWeapon_Base::GetOwnerImpactpoint()
-{
-	return OwnerImpactPoint;
-}
+/**-----------------	Weapon_Base Part		-----------------*/
+/**-----------------	Owning Actor Part		-----------------*/
 
 void AWeapon_Base::AssociateToActorOwner(AActor* NewActorOwner, USceneComponent* NewOwnerViewpoint, USceneComponent* NewOwnerImpactpoint)
 {
@@ -83,6 +56,18 @@ void AWeapon_Base::AssociateToActorOwner(AActor* NewActorOwner, USceneComponent*
 		SetOwnerViewpoint(NewOwnerViewpoint, true);
 		AttachToActor(ActorOwner, FAttachmentTransformRules::SnapToTargetIncludingScale);
 	}
+}
+
+void AWeapon_Base::SetOwnerViewpoint(USceneComponent* NewOwnerViewpoint, bool bShouldUseIt)
+{
+	OwnerViewpont = NewOwnerViewpoint;	
+	bUseOwnerViewpoint = OwnerViewpont != nullptr && bShouldUseIt;
+}
+
+void AWeapon_Base::SetOwnerImpactpoint(USceneComponent* NewOwnerImpactpoint, bool bShouldUseIt)
+{
+	OwnerImpactPoint = NewOwnerImpactpoint;
+	bUseOwnerImpactpoint = OwnerImpactPoint != nullptr && bShouldUseIt;
 }
 
 void AWeapon_Base::DissociatesToActorOwner() 
@@ -102,6 +87,8 @@ void AWeapon_Base::AttachMesh1PToComponent(USceneComponent* NewParentComponent, 
 	Mesh1P->AttachToComponent(NewParentComponent, FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
 }
 
+/**-----------------	Mesh Part		-----------------*/
+
 void AWeapon_Base::UseMesh1P()
 {
 	bUse1P = true;
@@ -114,9 +101,4 @@ void AWeapon_Base::UseMesh3P()
 	bUse1P = false;
 	Mesh->SetVisibility(true, true);
 	Mesh1P->SetVisibility(false, true);
-}
-
-bool AWeapon_Base::IsUsing1P()
-{
-	return bUse1P;
 }

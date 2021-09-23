@@ -115,9 +115,9 @@ void AErebeCharacter::BeginPlay()
 
 		if (EquipedWeapon != nullptr)
 		{
-			EquipedWeapon->SetActorOwner(this);
-			EquipedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("grip_r"));
-			EquipedWeapon->SetOwnerViewpoint(GetFollowCamera());
+			EquipedWeapon->AssociateToActorOwner(this, GetFollowCamera());
+			EquipedWeapon->AttachMeshToComponent(GetMesh(), TEXT("grip_r"));
+			EquipedWeapon->UseMesh3P();
 		}
 	}
 
