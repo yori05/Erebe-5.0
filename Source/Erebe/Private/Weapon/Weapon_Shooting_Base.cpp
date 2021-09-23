@@ -100,9 +100,9 @@ void AWeapon_Shooting_Base::Shoot()
 		{
 			ProjectileLocation = OwnerImpactPoint->GetComponentLocation();
 		}
-		else if (GetSkeletalMeshComponent() != nullptr)
+		else if (GetMesh() != nullptr)
 		{
-			ProjectileLocation = GetSkeletalMeshComponent()->GetSocketLocation(SpawnSocketName);
+			ProjectileLocation = GetMesh()->GetSocketLocation(SpawnSocketName);
 		}
 		else
 		{
@@ -113,9 +113,9 @@ void AWeapon_Shooting_Base::Shoot()
 		{
 			ProjectileRotation = OwnerViewpont->GetComponentRotation();
 		}
-		else if (GetSkeletalMeshComponent() != nullptr)
+		else if (GetMesh() != nullptr)
 		{
-			ProjectileRotation = GetSkeletalMeshComponent()->GetSocketRotation(SpawnSocketName);
+			ProjectileRotation = GetMesh()->GetSocketRotation(SpawnSocketName);
 		}
 		else
 		{

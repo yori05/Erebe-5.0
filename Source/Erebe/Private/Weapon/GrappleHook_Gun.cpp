@@ -28,7 +28,7 @@ AGrappleHook_Gun::AGrappleHook_Gun()
 	Cable = CreateDefaultSubobject<UCableComponent>("Cable");
 	if (Cable != nullptr)
 	{
-		Cable->SetupAttachment(GetSkeletalMeshComponent(),TEXT("Muzzle"));
+		Cable->SetupAttachment(GetMesh(),TEXT("Muzzle"));
 		Cable->CableLength = 0;
 		Cable->CableWidth = 2.0f;
 		Cable->SetCollisionProfileName(TEXT("GrappleHook_Cable"));

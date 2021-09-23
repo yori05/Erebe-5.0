@@ -195,9 +195,9 @@ void ACharacter_FPS::EquipWeapon(AWeapon_Base* NewWeapon, bool bReleasePreviousW
 	if (NewWeapon != nullptr)
 	{
 		EquippedWeapon = NewWeapon;
-		EquippedWeapon->SetActorOwner(this);
-		EquippedWeapon->AttachToComponent(GetMesh1P(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("grip_r"));
-		EquippedWeapon->SetOwnerViewpoint(GetCamera1P());
+		EquippedWeapon->AssociateToActorOwner(this, GetCamera1P());
+		EquippedWeapon->AttachMesh1PToComponent(GetMesh1P(), TEXT("grip_r"));
+		EquippedWeapon->UseMesh1P();
 	}
 }
 
