@@ -81,14 +81,20 @@ protected:
 		void StopJumpingInput();
 
 	/**
-	 *  Called via input to fire1 pressed, will call the character fire press action
+	 *  Called via input fire1 pressed, will call the character fire press action
 	 */
 	UFUNCTION(BlueprintCallable)
 		void FirePressInput();
 	/**
-	 *  Called via input to fire1 released, will call the character fire release action
+	 *  Called via input fire1 released, will call the character fire release action
 	 */
 	UFUNCTION(BlueprintCallable)
 		void FireReleaseInput();
+
+	/**
+	 *  Called via input Drop, will call the character drop weapon action
+	 */
+	UFUNCTION(BlueprintCallable)
+	void ReleaseWeaponInput();
 
 };

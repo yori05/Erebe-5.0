@@ -207,6 +207,7 @@ void ACharacter_FPS::EquipWeapon(AWeapon_Base* NewWeapon, bool bReleasePreviousW
 void ACharacter_FPS::ReleaseWeapon()
 {
 	EquippedWeapon->DissociatesToActorOwner();
+	EquippedWeapon = nullptr;
 }
 
 /**
@@ -214,7 +215,9 @@ void ACharacter_FPS::ReleaseWeapon()
  */
 void ACharacter_FPS::DestroyWeapon()
 {
+	AWeapon_Base* Weapon = EquippedWeapon;
+
 	ReleaseWeapon();
 
-	EquippedWeapon->Destroy();
+	Weapon->Destroy();
 }

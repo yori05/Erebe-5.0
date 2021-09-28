@@ -41,6 +41,8 @@ void APlayerController_FPS::SetupInputComponent()
 	InputComponent->BindAction("Fire", IE_Pressed, this, &APlayerController_FPS::FirePressInput);
 	InputComponent->BindAction("Fire", IE_Released, this, &APlayerController_FPS::FireReleaseInput);
 
+	/** Interaction Input */
+	InputComponent->BindAction("Drop", IE_Pressed, this, &APlayerController_FPS::ReleaseWeaponInput);
 }
 
 /**-----------------	Input Function Part		-----------------*/
@@ -121,5 +123,15 @@ void APlayerController_FPS::FireReleaseInput()
 	if (IsValid(MyPawn))
 	{
 		MyPawn->FireRelease();
+	}
+}
+
+void APlayerController_FPS::ReleaseWeaponInput()
+{
+	auto MyPawn = GetPawn<ACharacter_FPS>();
+
+	if (IsValid(MyPawn))
+	{
+		MyPawn->ReleaseWeapon();
 	}
 }

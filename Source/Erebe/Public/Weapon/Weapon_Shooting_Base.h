@@ -14,7 +14,7 @@ class AAmmo_Base;
  *	Used by a Weapon_Shooting_Base to save the fire time state of the weapon.
  */
 UENUM(BlueprintType)
-enum EFireTimetate
+enum EFireTimeState
 {
 	/**
 	* Default mode
@@ -75,7 +75,7 @@ protected:
 
 	/** Use to save which fire state the weapon use */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	TEnumAsByte<enum EFireTimetate> FireTimeState = EFireTimetate::SHOOTTIME_Press;
+	TEnumAsByte<enum EFireTimeState> FireTimeState = EFireTimeState::SHOOTTIME_Press;
 
 	/** Use to save which fire state the weapon use */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
@@ -84,6 +84,10 @@ protected:
 	/** Use to set the time to hold fire for the first projectile to go */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	float FirstHold_Duration = 0.f;
+
+	/** Use to set the time max to hold fire for the first projectile to go */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		float FirstHold_DurationMax = 0.f;
 
 	/** Use to time @FirstHold_Duration */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
@@ -103,6 +107,11 @@ protected:
 	/** Use to save if fire is press or release */
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
 	bool bFire = false;
+
+	/** Use to save if fire is press or release */
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
+		bool bHasFirstFire = false;
+
 
 	/**-----------------	Inherit Function Part		-----------------*/
 public :
@@ -155,9 +164,9 @@ public:
 
 	FORCEINLINE int32 GetPoolSize() { return PoolSize; };
 
-	FORCEINLINE EFireTimetate GetFireTimeState() { return FireTimeState; };
+	FORCEINLINE EFireTimeState GetFireTimeState() { return FireTimeState; };
 
-	FORCEINLINE void SetFireTimeState(EFireTimetate NewFireTimeState) { FireTimeState = NewFireTimeState; };
+	FORCEINLINE void SetFireTimeState(EFireTimeState NewFireTimeState) { FireTimeState = NewFireTimeState; };
 
 	FORCEINLINE int32 GetNumberOfProjectileFire() { return NumberOfProjectileFire; };
 

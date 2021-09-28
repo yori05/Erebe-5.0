@@ -22,8 +22,8 @@ AWeapon_Shooting_Base::AWeapon_Shooting_Base(const FObjectInitializer& ObjectIni
 		ProjectileClass = AAmmo_Base::StaticClass();
 	}
 
-	ProjectilePool.SetNum(PoolSize);
-	AvaibleProjectilePool.SetNum(PoolSize);
+	ProjectilePool.Reserve(PoolSize);
+	AvaibleProjectilePool.Reserve(PoolSize);
 	SpawnSocketName = TEXT("Muzzle");
 }
 
@@ -40,12 +40,51 @@ void AWeapon_Shooting_Base::BeginPlay()
 void AWeapon_Shooting_Base::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (bFire)
+	{
+		if (!bHasFirstFire)
+		{
+			if (!FMath::IsNearlyZero(FirstHold_Duration) && FirstHold_Timer < FirstHold_DurationMax)
+			{
+				FirstHold_Timer += DeltaTime;
+			}
+
+			if (FireTimeState == EFireTimeState::SHOOTTIME_Press || FireTimeState == EFireTimeState::SHOOTTIME_Continue)
+			{
+				if (FirstHold_Timer >= FirstHold_Duration)
+				{
+					Shoot();
+					bHasFirstFire = true;
+				}
+			}
+		}
+		else if (FireTimeState == EFireTimeState::SHOOTTIME_Continue)
+		{
+			if (!FMath::IsNearlyZero(ColdDown_Duration))
+			{
+				ColdDown_Timer += DeltaTime;
+
+				if (ColdDown_Timer >= ColdDown_Duration)
+				{
+					Shoot();
+					ColdDown_Timer = 0.f;
+				}
+			}
+		}
+	}
+
 }
 
 void AWeapon_Shooting_Base::IntializeProjectilePool()
 {
 	auto World = GetWorld();
 	AAmmo_Base* Temp = nullptr;
+
+	if (ProjectilePool.Num() != PoolSize)
+	{
+		ProjectilePool.Reserve(PoolSize);
+	}
 
 	if (PoolSize > 0 && World != nullptr)
 	{
@@ -55,8 +94,8 @@ void AWeapon_Shooting_Base::IntializeProjectilePool()
 			Temp->SetWeaponOwner(this);
 			Temp->SetProjectileIndex(i);
 			Temp->Inactive();
-			ProjectilePool[i] = Temp;
-			AvaibleProjectilePool[i] = Temp;
+			ProjectilePool.Add(Temp);
+			AvaibleProjectilePool.Add(Temp);
 		}
 	}	
 }
@@ -64,12 +103,14 @@ void AWeapon_Shooting_Base::IntializeProjectilePool()
 void AWeapon_Shooting_Base::FirePress()
 {
 	bFire = true;
+	bHasFirstFire = false;
 
-	if (FireTimeState == EFireTimetate::SHOOTTIME_Press)
+	if (FireTimeState == EFireTimeState::SHOOTTIME_Press || FireTimeState == EFireTimeState::SHOOTTIME_Continue)
 	{
 		if (FMath::IsNearlyZero(FirstHold_Duration))
 		{
 			Shoot();
+			bHasFirstFire = true;
 		}
 	}
 }
@@ -77,8 +118,9 @@ void AWeapon_Shooting_Base::FirePress()
 void AWeapon_Shooting_Base::FireRelease()
 {
 	bFire = false;
+	bHasFirstFire = false;
 
-	if (FireTimeState == EFireTimetate::SHOOTTIME_Release)
+	if (FireTimeState == EFireTimeState::SHOOTTIME_Release)
 	{
 		if (FMath::IsNearlyZero(FirstHold_Duration) || FMath::IsNearlyEqual(FirstHold_Duration, FirstHold_Timer))
 		{
