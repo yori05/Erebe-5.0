@@ -18,13 +18,14 @@ AAmmo_Base::AAmmo_Base(const FObjectInitializer& ObjectInitializer)
 	if (SphereCollider != nullptr)
 	{
 		SphereCollider->SetupAttachment(GetRootComponent());
-		SphereCollider->SetCollisionProfileName(TEXT("OverlapAll"));
+		SphereCollider->SetCollisionProfileName(TEXT("NoCollision"));
 	}
 	
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	if (StaticMesh != nullptr)
 	{
 		StaticMesh->SetupAttachment(SphereCollider);
+		StaticMesh->SetCollisionProfileName(TEXT("NoCollision"));
 	}
 	
 	//MovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("MovementComponent"));
@@ -34,6 +35,12 @@ AAmmo_Base::AAmmo_Base(const FObjectInitializer& ObjectInitializer)
 		MovementComponent->MaxSpeed = 1500.f;
 		MovementComponent->bRotationFollowsVelocity = true;
 	}
+
+	CollisionQueryParams.AddIgnoredActor(this);
+	CollisionQueryParams.bTraceComplex = true;
+	CollisionQueryParams.bIgnoreTouches = false;
+	CollisionQueryParams.bIgnoreBlocks = false;
+
 }
 
 // Called when the game starts or when spawned
@@ -43,7 +50,7 @@ void AAmmo_Base::BeginPlay()
 	
 	if (SphereCollider != nullptr)
 	{
-		SphereCollider->OnComponentBeginOverlap.AddUniqueDynamic(this, &AAmmo_Base::OnSphereColliderBeginOverlap_Implementation);
+	//	SphereCollider->OnComponentBeginOverlap.AddUniqueDynamic(this, &AAmmo_Base::OnSphereColliderBeginOverlap_Implementation);
 	}
 
 }
@@ -55,18 +62,31 @@ void AAmmo_Base::Tick(float DeltaTime)
 
 	if (bCanMove)
 	{
-		FVector DistanceTravel = Velocity * DeltaTime;
-		Velocity = (bUseGravity) ? Velocity + (GravityScale * 9.81f * DeltaTime) : Velocity;
+		if (PhysicsInteration == 0)
+			PhysicsInteration = 1;
+
+		float PhysicsInterationFloat = PhysicsInteration;
+		float RatioIIteraction = 1.f / PhysicsInterationFloat;
+
 		
-		if (GetWorld() != nullptr)
+		for (int i = 0; i < PhysicsInteration; i++)
 		{
-			TArray<FHitResult> LineTraceHits;
-			GetWorld()->LineTraceMultiByProfile(LineTraceHits, GetActorLocation(), GetActorLocation() + DistanceTravel, TEXT("OverlapAll"));
+			FVector DistanceTravel = Velocity * DeltaTime * RatioIIteraction;
+			Velocity = (bUseGravity) ? Velocity + (GravityScale * 9.81f * DeltaTime * RatioIIteraction) : Velocity;
+			AddActorLocalOffset(DistanceTravel);
+
+			if (GetWorld() != nullptr)
+			{
+				if (GetWorld()->SweepSingleByProfile(HitMovingCollision, GetActorLocation(), GetActorLocation() + DistanceTravel, GetActorQuat(), TEXT("BlockAll"), FCollisionShape::MakeSphere(SweepTestRadius), CollisionQueryParams))
+				{
+					HandleCollision();
+				}
+			}
+
+			if (!bCanMove)
+				break;
 		}
-
-		AddActorLocalOffset(DistanceTravel);
 	}
-
 }
 
 void AAmmo_Base::OnSphereColliderBeginOverlap_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -86,7 +106,7 @@ void AAmmo_Base::OnSphereColliderBeginOverlap_Implementation(UPrimitiveComponent
 		return;
 	}
 
-	HitValideActor(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
+	HitValideActor(SweepResult);
 }
 
 void AAmmo_Base::Inactive(bool bHide)
@@ -143,7 +163,48 @@ void AAmmo_Base::Show()
 	}
 }
 
-void AAmmo_Base::HitValideActor(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void AAmmo_Base::AssossiateToWeapon(AWeapon_Shooting_Base* NewWeaponOwner, int32 NewProjectileIndex)
+{
+	WeaponOwner = NewWeaponOwner;
+	ProjectileIndex = NewProjectileIndex;
+
+	if (WeaponOwner != nullptr)
+	{
+		CollisionQueryParams.AddIgnoredActor(WeaponOwner);
+
+		if (WeaponOwner->GetActorOwner() != nullptr)
+		{
+			CollisionQueryParams.AddIgnoredActor(WeaponOwner->GetActorOwner());
+		}
+	}
+}
+
+void AAmmo_Base::HitValideActor(const FHitResult& HitResult)
 {
 	Inactive(false);
+}
+
+void AAmmo_Base::HandleCollision()
+{
+	if (HitMovingCollision.GetActor() == this)
+	{
+		return;
+	}
+
+	if (HitMovingCollision.GetComponent()->ComponentHasTag(TEXT("NotHitable")))
+	{
+		return;
+	}
+
+	if (WeaponOwner == nullptr || Cast<AActor>(WeaponOwner) == HitMovingCollision.GetActor())
+	{
+		return;
+	}
+
+	if (WeaponOwner->GetActorOwner() == nullptr || Cast<AActor>(WeaponOwner->GetActorOwner()) == HitMovingCollision.GetActor())
+	{
+		return;
+	}
+
+	HitValideActor(HitMovingCollision);
 }

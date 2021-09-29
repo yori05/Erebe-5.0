@@ -33,7 +33,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	// Define the behavior of the projectile when he hit a valid actor
-	virtual void HitValideActor(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
+	virtual void HitValideActor(const FHitResult &HitResult) override;
 
 	/**-----------------	Callback Implementation Part	-----------------*/
 protected:

@@ -17,9 +17,9 @@ void AGrappleHook_Ammo::BeginPlay()
 }
 
 
-void AGrappleHook_Ammo::HitValideActor(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void AGrappleHook_Ammo::HitValideActor(const FHitResult &HitResult)
 {
-	Super::HitValideActor(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
+	Super::HitValideActor(HitResult);
 
 }
 

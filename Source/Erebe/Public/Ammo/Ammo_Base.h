@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "CollisionQueryParams.h"
 #include "Ammo_Base.generated.h"
 
 class UStaticMeshComponent;
@@ -37,6 +38,9 @@ protected :
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	int32 ProjectileIndex;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 PhysicsInteration = 1;
+
 	// Weapon that shot and possess this projectile
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	AWeapon_Shooting_Base* WeaponOwner;
@@ -49,20 +53,25 @@ protected :
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector InitialVelocity;
 
+	FCollisionQueryParams CollisionQueryParams;
+
 	// Array of every hit touch by the projectile from his last movement
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TArray<FHitResult> HitMovingCollision;
+	FHitResult HitMovingCollision;
 
 	// scale of the gravity apply to this projectile
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float GravityScale = 1.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float SweepTestRadius = 16.f;
 
 	// should use gravity on this projectile (value of 9.81)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bUseGravity = false;
 
 	// Can the projectile can move 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool bCanMove = false;
 
 	/**-----------------	Inherit Function Part		-----------------*/
@@ -103,13 +112,16 @@ public :
 	UFUNCTION(BlueprintCallable)
 	virtual void Show();
 
-
+	UFUNCTION(BlueprintCallable)
+	virtual void AssossiateToWeapon(class AWeapon_Shooting_Base* NewWeaponOwner, int32 NewProjectileIndex);
 protected:
 
 	// Define the behavior of the projectile when he hit a valid actor
 	UFUNCTION(BlueprintCallable)
-		virtual void HitValideActor(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+		virtual void HitValideActor(const FHitResult &HitResult);
 
+	UFUNCTION(BlueprintCallable)
+	virtual void HandleCollision();
 	/**-----------------	Variable Accessor Part			-----------------*/
 public : 
 	

@@ -91,8 +91,7 @@ void AWeapon_Shooting_Base::IntializeProjectilePool()
 		for (int i = 0; i < PoolSize; i++)
 		{
 			Temp = World->SpawnActor<AAmmo_Base>(ProjectileClass, GetActorTransform());
-			Temp->SetWeaponOwner(this);
-			Temp->SetProjectileIndex(i);
+			Temp->AssossiateToWeapon(this, i);
 			Temp->Inactive();
 			ProjectilePool.Add(Temp);
 			AvaibleProjectilePool.Add(Temp);
@@ -167,6 +166,7 @@ void AWeapon_Shooting_Base::Shoot()
 		if (ProjectilePool[PoolIndex] == nullptr)
 		{
 			ProjectilePool[PoolIndex] = World->SpawnActor<AAmmo_Base>(ProjectileClass, GetActorTransform());
+			ProjectilePool[PoolIndex]->AssossiateToWeapon(this, i);
 		}
 
 		ProjectilePool[PoolIndex]->SetActorLocation(ProjectileLocation);
