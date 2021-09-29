@@ -41,6 +41,29 @@ protected :
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	AWeapon_Shooting_Base* WeaponOwner;
 
+	// Current velocity of the projectile
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FVector Velocity;
+
+	// Initial velocity of the projectile
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector InitialVelocity;
+
+	// Array of every hit touch by the projectile from his last movement
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TArray<FHitResult> HitMovingCollision;
+
+	// scale of the gravity apply to this projectile
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float GravityScale = 1.f;
+
+	// should use gravity on this projectile (value of 9.81)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bUseGravity = false;
+
+	// Can the projectile can move 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanMove = false;
 
 	/**-----------------	Inherit Function Part		-----------------*/
 public:	

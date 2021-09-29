@@ -6,6 +6,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "Weapon/Weapon_Shooting_Base.h"
+#include "Engine/World.h"
 
 // Sets default values
 AAmmo_Base::AAmmo_Base(const FObjectInitializer& ObjectInitializer)
@@ -26,7 +27,7 @@ AAmmo_Base::AAmmo_Base(const FObjectInitializer& ObjectInitializer)
 		StaticMesh->SetupAttachment(SphereCollider);
 	}
 	
-	MovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("MovementComponent"));
+	//MovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("MovementComponent"));
 	if (MovementComponent != nullptr)
 	{
 		MovementComponent->InitialSpeed = 1500.f;
@@ -51,6 +52,20 @@ void AAmmo_Base::BeginPlay()
 void AAmmo_Base::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (bCanMove)
+	{
+		FVector DistanceTravel = Velocity * DeltaTime;
+		Velocity = (bUseGravity) ? Velocity + (GravityScale * 9.81f * DeltaTime) : Velocity;
+		
+		if (GetWorld() != nullptr)
+		{
+			TArray<FHitResult> LineTraceHits;
+			GetWorld()->LineTraceMultiByProfile(LineTraceHits, GetActorLocation(), GetActorLocation() + DistanceTravel, TEXT("OverlapAll"));
+		}
+
+		AddActorLocalOffset(DistanceTravel);
+	}
 
 }
 
@@ -83,6 +98,10 @@ void AAmmo_Base::Inactive(bool bHide)
 		MovementComponent->Deactivate();
 	}
 	
+
+	bCanMove = false;
+	Velocity = FVector::ZeroVector;
+
 	if (bHide)
 	{
 		Hide();
@@ -98,6 +117,9 @@ void AAmmo_Base::Active(bool bShow)
 		MovementComponent->Activate(true);
 		MovementComponent->SetVelocityInLocalSpace(FVector(MovementComponent->InitialSpeed, 0.f, 0.f));
 	}
+
+	bCanMove = true;
+	Velocity = InitialVelocity;
 	
 	if (bShow)
 	{
