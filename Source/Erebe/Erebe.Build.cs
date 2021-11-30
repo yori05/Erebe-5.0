@@ -14,7 +14,9 @@ public class Erebe : ModuleRules
 
 		// Uncomment if you are using Slate UI
 		PrivateDependencyModuleNames.AddRange(new string[] { "UMG", "Slate", "SlateCore" });
-		
+
+		PrivateDependencyModuleNames.AddRange(new string[] { "GameplayTasks" });
+
 		// Uncomment if you are using online features
 		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
 
