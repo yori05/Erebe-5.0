@@ -12,7 +12,7 @@
  *
  */
 UENUM(BlueprintType)
-enum EInteractiveCategories
+enum EInteractiveCategorie
 {
 	/**
 	* Signpost
@@ -33,7 +33,7 @@ enum EInteractiveCategories
 	INTERACTIVE_Max UMETA(Hidden),
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FInteractiveComponentCallback, class UInteractiveComponent*, InteractiveComponent, class UInteractiveComponent*, OtherComponent, EInteractiveCategories, InteractionCategorie);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FInteractiveComponentCallback, class UInteractiveComponent*, InteractiveComponent, class UInteractiveComponent*, OtherComponent, EInteractiveCategorie, InteractionCategorie);
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -43,13 +43,13 @@ class EREBE_API UInteractiveComponent : public UActorComponent
 
 private :
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, meta= (AllowPrivateAccess = "true"))
-		TMap<TEnumAsByte<EInteractiveCategories>, UActorComponent*> InteractivesActions;
+		TMap<TEnumAsByte<EInteractiveCategorie>, UActorComponent*> InteractivesActions;
 
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
 		UActorComponent* MainInteractiveAction;
 
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
-		TEnumAsByte<EInteractiveCategories> MainCatergorieAction;
+		TEnumAsByte<EInteractiveCategorie> MainCatergorieAction;
 
 public:
 	/** Called in the MainInteract and InteractByID function, in case you override on these function and don't call the super you need to call this callback */
@@ -69,8 +69,8 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 public :
-	virtual bool TryToAddAInteraction(UActorComponent* NewComp, EInteractiveCategories NewCategorie, bool IsMainAction = false);
-	virtual UActorComponent* GetInteractionComponent(EInteractiveCategories NewCategorie);
-	virtual void Interact(EInteractiveCategories Categorie, UInteractiveComponent* OtherComponent);
+	virtual bool TryToAddAInteraction(UActorComponent* NewComp, EInteractiveCategorie NewCategorie, bool IsMainAction = false);
+	virtual UActorComponent* GetInteractionComponent(EInteractiveCategorie NewCategorie);
+	virtual void Interact(EInteractiveCategorie Categorie, UInteractiveComponent* OtherComponent);
 	virtual void MainInteract(UInteractiveComponent* OtherComponent);
 };

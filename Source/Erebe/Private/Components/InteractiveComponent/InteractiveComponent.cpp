@@ -35,7 +35,7 @@ void UInteractiveComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	// ...
 }
 
-bool UInteractiveComponent::TryToAddAInteraction(UActorComponent* NewComp, EInteractiveCategories NewCategorie, bool IsMainAction)
+bool UInteractiveComponent::TryToAddAInteraction(UActorComponent* NewComp, EInteractiveCategorie NewCategorie, bool IsMainAction)
 {
 	if (!InteractivesActions.Contains(NewCategorie))
 	{
@@ -53,7 +53,7 @@ bool UInteractiveComponent::TryToAddAInteraction(UActorComponent* NewComp, EInte
 	return false;
 }
 
-UActorComponent* UInteractiveComponent::GetInteractionComponent(EInteractiveCategories NewCategorie)
+UActorComponent* UInteractiveComponent::GetInteractionComponent(EInteractiveCategorie NewCategorie)
 {
 	if (InteractivesActions.Contains(NewCategorie))
 	{
@@ -63,7 +63,7 @@ UActorComponent* UInteractiveComponent::GetInteractionComponent(EInteractiveCate
 	return nullptr;
 }
 
-void UInteractiveComponent::Interact(EInteractiveCategories Categorie, UInteractiveComponent* OtherComponent)
+void UInteractiveComponent::Interact(EInteractiveCategorie Categorie, UInteractiveComponent* OtherComponent)
 {
 	if (!InteractivesActions.Contains(Categorie))
 	{

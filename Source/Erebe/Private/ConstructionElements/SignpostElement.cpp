@@ -24,7 +24,7 @@ ASignpostElement::ASignpostElement()
 	SignpostComponent = CreateDefaultSubobject<USignpostComponent>(TEXT("SignpostComp"));
 	if (InteractiveComponent != nullptr)
 	{
-		InteractiveComponent->TryToAddAInteraction(SignpostComponent, EInteractiveCategories::INTERACTIVE_Signpost, true);
+		InteractiveComponent->TryToAddAInteraction(SignpostComponent, EInteractiveCategorie::INTERACTIVE_Signpost, true);
 	}
 }
 
