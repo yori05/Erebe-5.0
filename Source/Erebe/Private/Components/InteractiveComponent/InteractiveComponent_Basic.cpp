@@ -25,8 +25,10 @@ void UInteractiveComponent_Basic::BeginPlay()
 {
 	Super::BeginPlay();
 
+	Owner = Cast<AActor>(GetOwner());
+
 	// ...
-	
+
 }
 
 
@@ -38,13 +40,24 @@ void UInteractiveComponent_Basic::TickComponent(float DeltaTime, ELevelTick Tick
 	// ...
 	if (bInteractionOngoing && bCanUpdateOnTick)
 	{
-		UpdateInteract();
+		UpdateInteract(DeltaTime);
+	}
+}
+
+void UInteractiveComponent_Basic::EndPlay(EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+
+	if (bInteractionOngoing)
+	{
+		AbortInteraction();
 	}
 }
 
 /**-----------------	Interactive Function Part		-----------------*/
 
-void UInteractiveComponent_Basic::SetIsMainInteraction(bool bNewIsMainInteract, bool bForceIt)
+void UInteractiveComponent_Basic::SetAsMainInteraction(bool bNewIsMainInteract, bool bForceIt)
 {
 	if (!bForceIt && bNewIsMainInteract == bIsMainInteraction)
 	{
@@ -53,14 +66,27 @@ void UInteractiveComponent_Basic::SetIsMainInteraction(bool bNewIsMainInteract, 
 
 	bIsMainInteraction = bNewIsMainInteract;
 
+	ReceiveSetAsMainInteraction(bNewIsMainInteract, bForceIt);
 	OnSetAsMainInteraction.Broadcast();
 }
 
-bool UInteractiveComponent_Basic::CallInteraction()
+bool UInteractiveComponent_Basic::CallInteraction(AActor* _Requestor)
 {
-	if (CanInteract())
+	if (CanInteract(_Requestor))
 	{
-		BeginInteract();
+		if (bInteractionOngoing && bStopIfCalledOngoing)
+		{
+			EndInteract();
+		}
+		else if (bInteractionOngoing && bUpdateIfCalledOngoing)
+		{
+			UpdateInteract();
+		}
+		else
+		{
+			Requestor = _Requestor;
+			BeginInteract();
+		}
 
 		return true;
 	}
@@ -70,16 +96,12 @@ bool UInteractiveComponent_Basic::CallInteraction()
 	return false;
 }
 
-bool UInteractiveComponent_Basic::StopInteraction()
+void UInteractiveComponent_Basic::StopInteraction()
 {
 	if (bInteractionOngoing)
 	{
 		EndInteract();
-
-		return true;
 	}
-
-	return false;
 }
 
 void UInteractiveComponent_Basic::CanStopOnNextUpdate()
@@ -90,33 +112,33 @@ void UInteractiveComponent_Basic::CanStopOnNextUpdate()
 	}
 }
 
-bool UInteractiveComponent_Basic::AbortInteraction()
+void UInteractiveComponent_Basic::AbortInteraction()
 {
 	if (bInteractionOngoing)
 	{
 		AbortInteract();
-
-		return true;
 	}
-
-	return false;
 }
 
-bool UInteractiveComponent_Basic::CanInteract() const
+bool UInteractiveComponent_Basic::CanInteract(AActor* _Requestor) const
 {
-	return false;
+	bool bResult = (bNeedRequestor) ? IsValid(_Requestor) : true;
+	bResult = bResult && ((bInteractionOngoing) ? bCanInteractIfOngoing : true);
+
+	return (bNeedRequestor) ? IsValid(_Requestor) : true
+			&& (bInteractionOngoing) ? bCanInteractIfOngoing : true;
 }
 
 void UInteractiveComponent_Basic::BeginInteract()
 {
 	bInteractionOngoing = true;
 
-	OnBeginInteract.Broadcast();
 	ReceiveBeginInteract();
+	OnBeginInteract.Broadcast();
 
 	if (bCallUpdateInBegin)
 	{
-		UpdateInteract();
+		UpdateInteract(0.f);
 	}
 	if (bCanEndInBegin && bCanEnd)
 	{
@@ -124,15 +146,15 @@ void UInteractiveComponent_Basic::BeginInteract()
 	}
 }
 
-void UInteractiveComponent_Basic::UpdateInteract()
+void UInteractiveComponent_Basic::UpdateInteract(float DeltaTime)
 {
 	if (!bInteractionOngoing)
 	{
 		return;
 	}
 
-	OnUpdateInteract.Broadcast();
-	ReceiveUpdateInteract();
+	ReceiveUpdateInteract(DeltaTime);
+	OnUpdateInteract.Broadcast(DeltaTime);
 
 	if (bCanEnd)
 	{
@@ -144,22 +166,83 @@ void UInteractiveComponent_Basic::EndInteract()
 {
 	bInteractionOngoing = false;
 	bCanEnd = false;
+	Requestor = nullptr;
 
-	OnEndInteract.Broadcast();
 	ReceiveEndInteract();
+	OnEndInteract.Broadcast();
 }
 
 void UInteractiveComponent_Basic::AbortInteract()
 {
 	bInteractionOngoing = false;
 	bCanEnd = false;
+	Requestor = nullptr;
 
-	OnAbortInteract.Broadcast();
 	ReceiveAbortInteract();
+	OnAbortInteract.Broadcast();
 }
 
 void UInteractiveComponent_Basic::CantInteract()
 {
-	OnCantInteract.Broadcast();
 	ReceiveCantInteract();
+	OnCantInteract.Broadcast();
 }
+
+/**-----------------	Check Interaction Function Part		-----------------*/
+
+bool UInteractiveComponent_Basic::ForwardAlignment(AActor* _Requestor) const
+{
+	if (IsValid(_Requestor) && IsValid(Owner))
+	{
+		//If the door is close check if the player is aligned enough with the door.
+		float InteractorProjection = FVector::DotProduct(_Requestor->GetActorForwardVector(), Owner->GetActorForwardVector());
+
+		if (DotForwdAlignSensitivity * DotForwdAlignSensitivity <= InteractorProjection * InteractorProjection)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool UInteractiveComponent_Basic::OwnerLocByRequestorFrwAlign(AActor* _Requestor) const
+{
+	if (IsValid(_Requestor) && IsValid(Owner))
+	{
+		auto OwnerByRequestorLocation = Owner->GetActorLocation() - _Requestor->GetActorLocation();
+		float ForwardLocationProjection = FVector::DotProduct(_Requestor->GetActorForwardVector(), OwnerByRequestorLocation);
+
+		if (ForwardLocationProjection >= DotForwdAlignSensitivity)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool UInteractiveComponent_Basic::FrontAndForwardAlignment(AActor* _Requestor) const
+{
+	if (IsValid(_Requestor) && IsValid(Owner))
+	{
+		// the forward direction of this object
+		auto ForwardVector = Owner->GetActorForwardVector();
+		// The location of the interactor based on this object
+		auto InteractorLocation = _Requestor->GetActorLocation() - Owner->GetActorLocation();
+		// Dot of both object forward. If they make face of each other should be -1 if they look in the same direction 1 
+		float OrientationProjection = FVector::DotProduct(_Requestor->GetActorForwardVector(), ForwardVector);
+		// Dot product of this object forward and the interactor position, if he is in front of this object it's more than 0 and if he is behind less than 0
+		float LocationProjection = FVector::DotProduct(InteractorLocation, ForwardVector);
+
+		// Check if the interactor is in front of this object and look in his direction
+		// Maybe later will use the controller direction more than the pawn
+		if (OrientationProjection < -DotForwdAlignSensitivity && LocationProjection > DotFrontAlignSensitivity)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
