@@ -118,7 +118,6 @@ void AAmmo_Base::Inactive(bool bHide)
 		MovementComponent->Deactivate();
 	}
 	
-
 	bCanMove = false;
 	Velocity = FVector::ZeroVector;
 
@@ -132,6 +131,7 @@ void AAmmo_Base::Active(bool bShow)
 {
 	SetActorTickEnabled(true);
 	SetActorEnableCollision(true);
+
 	if (MovementComponent != nullptr)
 	{
 		MovementComponent->Activate(true);
@@ -163,7 +163,24 @@ void AAmmo_Base::Show()
 	}
 }
 
-void AAmmo_Base::AssossiateToWeapon(AWeapon_Shooting_Base* NewWeaponOwner, int32 NewProjectileIndex)
+void AAmmo_Base::Reset()
+{
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	Velocity = FVector::ZeroVector;
+
+	if (WeaponOwner != nullptr)
+	{
+		SetActorLocation(WeaponOwner->GetActorLocation());
+		SetActorRotation(WeaponOwner->GetActorRotation());
+	}
+	else
+	{
+		//SetActorLocation(FVector::ZeroVector);
+		//SetActorRotation(FQuat::FQuat());
+	}
+}
+
+void AAmmo_Base::AssociateToWeapon(AWeapon_Shooting_Base* NewWeaponOwner, int32 NewProjectileIndex)
 {
 	WeaponOwner = NewWeaponOwner;
 	ProjectileIndex = NewProjectileIndex;
@@ -181,7 +198,13 @@ void AAmmo_Base::AssossiateToWeapon(AWeapon_Shooting_Base* NewWeaponOwner, int32
 
 void AAmmo_Base::HitValideActor(const FHitResult& HitResult)
 {
+	if (bInactiveOnHit)
 	Inactive(false);
+
+	if (bStickToActorOnHit)
+		AttachToActor(HitResult.GetActor(), FAttachmentTransformRules::KeepWorldTransform);
+
+	OnAmmoHitValidActor.Broadcast(this, HitResult);
 }
 
 void AAmmo_Base::HandleCollision()

@@ -7,6 +7,8 @@
 #include "CollisionQueryParams.h"
 #include "Ammo_Base.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FAmmoHitValidActor, AActor*, AmmoHit, const FHitResult&, HitResult);
+
 class UStaticMeshComponent;
 class UProjectileMovementComponent;
 class AWeapon_Shooting_Base;
@@ -74,6 +76,21 @@ protected :
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool bCanMove = false;
 
+	// Can the projectile stay active after hit a valid actor 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bInactiveOnHit = true;
+
+	// Can the projectile stick to the actor hit 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bStickToActorOnHit = true;
+
+
+	/**-----------------	Callback Declaration Part		-----------------*/
+public :
+	/** Called in the AmmoHitValideActor function */
+	UPROPERTY(BlueprintAssignable, BlueprintCallable)
+	FAmmoHitValidActor OnAmmoHitValidActor;
+
 	/**-----------------	Inherit Function Part		-----------------*/
 public:	
 	// Sets default values for this actor's properties
@@ -112,8 +129,13 @@ public :
 	UFUNCTION(BlueprintCallable)
 	virtual void Show();
 
+	// Reset the ammo to a default state (speed location etc)
 	UFUNCTION(BlueprintCallable)
-	virtual void AssossiateToWeapon(class AWeapon_Shooting_Base* NewWeaponOwner, int32 NewProjectileIndex);
+	virtual void Reset();
+
+	// Associate the ammo to a weapon to make the weapon the ammo's owner
+	UFUNCTION(BlueprintCallable)
+	virtual void AssociateToWeapon(class AWeapon_Shooting_Base* NewWeaponOwner, int32 NewProjectileIndex);
 protected:
 
 	// Define the behavior of the projectile when he hit a valid actor
