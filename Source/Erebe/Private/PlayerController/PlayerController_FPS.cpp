@@ -19,24 +19,6 @@ void APlayerController_FPS::SetupInputComponent()
 
 	check(InputComponent);
 
-	/** Locomotion Input */
-	InputComponent->BindAxis("MoveForward", this, &APlayerController_FPS::MoveForwardInput);
-	InputComponent->BindAxis("MoveRight", this, &APlayerController_FPS::MoveRightInput);
-
-	/**
-	  * We have 2 versions of the rotation bindings to handle different kinds of devices differently
-	  * "turn" handles devices that provide an absolute delta, such as a mouse.
-	  * "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
-	*/
-	InputComponent->BindAxis("Turn", this, &APlayerController_FPS::AddYawInput);
-	InputComponent->BindAxis("TurnRate", this, &APlayerController_FPS::TurnAtRateInput);
-	InputComponent->BindAxis("LookUp", this, &APlayerController_FPS::AddPitchInput);
-	InputComponent->BindAxis("LookUpRate", this, &APlayerController_FPS::LookUpAtRateInput);
-
-	/** Jump Input */
-	InputComponent->BindAction("Jump", IE_Pressed, this, &APlayerController_FPS::JumpInput);
-	InputComponent->BindAction("Jump", IE_Released, this, &APlayerController_FPS::StopJumpingInput);
-
 	/** Fight Input */
 	InputComponent->BindAction("Fire", IE_Pressed, this, &APlayerController_FPS::FirePressInput);
 	InputComponent->BindAction("Fire", IE_Released, this, &APlayerController_FPS::FireReleaseInput);
@@ -46,65 +28,6 @@ void APlayerController_FPS::SetupInputComponent()
 }
 
 /**-----------------	Input Function Part		-----------------*/
-
-void APlayerController_FPS::MoveForwardInput(float Value)
-{
-	auto MyPawn = GetPawn<ACharacter_FPS>();
-
-	if (IsValid(MyPawn))
-	{
-		MyPawn->MoveForward(Value);
-	}
-
-}
-
-void APlayerController_FPS::MoveRightInput(float Value)
-{
-	auto MyPawn = GetPawn<ACharacter_FPS>();
-
-	if (IsValid(MyPawn))
-	{
-		MyPawn->MoveRight(Value);
-	}
-}
-
-void APlayerController_FPS::LookUpAtRateInput(float Rate)
-{
-	if (GetWorld() != nullptr)
-	{
-		AddPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
-	}
-}
-void APlayerController_FPS::TurnAtRateInput(float Rate)
-{
-	if (GetWorld() != nullptr)
-	{
-		AddYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
-	}
-}
-
-void APlayerController_FPS::JumpInput()
-{
-	auto MyPawn = GetPawn<ACharacter_FPS>();
-
-	if (IsValid(MyPawn))
-	{
-		if (MyPawn->CanJump())
-		{
-			MyPawn->Jump();
-		}
-	}
-}
-
-void APlayerController_FPS::StopJumpingInput()
-{
-	auto MyPawn = GetPawn<ACharacter_FPS>();
-
-	if (IsValid(MyPawn))
-	{
-		MyPawn->StopJumping();
-	}
-}
 
 void APlayerController_FPS::FirePressInput()
 {

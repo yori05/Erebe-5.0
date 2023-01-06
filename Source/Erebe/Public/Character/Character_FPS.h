@@ -3,16 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "Character/Character_Basic.h"
 #include "Character_FPS.generated.h"
 
 /**
  *  CharacterFPS
+ *  Child of Character_Basic
  *	Character used by the player with a PlayerController_FPS
  *	Can move, jump, Fire
+ *  Has for default viewpoint First Person
  */
 UCLASS(config = Game)
-class EREBE_API ACharacter_FPS : public ACharacter
+class EREBE_API ACharacter_FPS : public ACharacter_Basic
 {
 	GENERATED_BODY()
 
@@ -28,16 +30,6 @@ protected:
 	/** The weapon currently equipped by this character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	class AWeapon_Base* EquippedWeapon;
-
-	/**-----------------	Component Part		-----------------*/
-private:
-	/** First person mesh  */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		class USkeletalMeshComponent* Mesh1P;
-
-	/**	First person camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		class UCameraComponent* Camera1P;
 
 	/**-----------------	Constructor Part		-----------------*/
 public:
@@ -56,19 +48,6 @@ public:
 	/**-----------------	Character_FPS Part		-----------------*/
 	/**-----------------	Action Part		-----------------*/
 public:
-	// Called to make the character move in the forward direction
-	UFUNCTION(BlueprintCallable)
-		void MoveForward(float Value);
-
-	// Called to make the character move in the right direction
-	UFUNCTION(BlueprintCallable)
-		void MoveRight(float Value);
-
-	// Called to make the character jump
-	virtual void Jump() override;
-
-	// Called to make the character stop jump
-	virtual void StopJumping() override;
 
 	/**
 	*  Called to fire with the weapon equipped if she can fire
@@ -124,12 +103,5 @@ public:
 	FORCEINLINE TSubclassOf<class AWeapon_Base> GetDefaultWeaponClass() const { return DefaultWeaponClass; }
 	/** Returns equipped weapon object **/
 	FORCEINLINE class AWeapon_Base* GetEquippedWeapon() const { return EquippedWeapon; }
-
-	/**-----------------	Component Accessor Part		-----------------*/
-public:
-	/** Returns First person mesh subobject **/
-	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
-	/** Returns First person Camera subobject **/
-	FORCEINLINE class UCameraComponent* GetCamera1P() const { return Camera1P; }
 
 };
