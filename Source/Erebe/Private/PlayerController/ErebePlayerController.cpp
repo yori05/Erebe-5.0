@@ -29,23 +29,23 @@ void AErebePlayerController::SetupInputComponent()
 
 	check(InputComponent);
 
-	/** Jump Input */
-	InputComponent->BindAction("Jump", IE_Pressed, this, &AErebePlayerController::JumpInput);
-	InputComponent->BindAction("Jump", IE_Released, this, &AErebePlayerController::StopJumpInput);
-
-	/** Locomotion Input */
-	InputComponent->BindAxis("MoveForward", this, &AErebePlayerController::MoveForwardInput);
-	InputComponent->BindAxis("MoveRight", this, &AErebePlayerController::MoveRightInput);
-
-	/** 
-	  * We have 2 versions of the rotation bindings to handle different kinds of devices differently
-	  * "turn" handles devices that provide an absolute delta, such as a mouse.
-	  * "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
-	*/
-	InputComponent->BindAxis("Turn", this, &AErebePlayerController::AddYawInput);
-	InputComponent->BindAxis("TurnRate", this, &AErebePlayerController::TurnAtRateInput);
-	InputComponent->BindAxis("LookUp", this, &AErebePlayerController::AddPitchInput);
-	InputComponent->BindAxis("LookUpRate", this, &AErebePlayerController::LookUpAtRateInput);
+	///** Jump Input */
+	//InputComponent->BindAction("Jump", IE_Pressed, this, &AErebePlayerController::JumpInput);
+	//InputComponent->BindAction("Jump", IE_Released, this, &AErebePlayerController::StopJumpInput);
+	//
+	///** Locomotion Input */
+	//InputComponent->BindAxis("MoveForward", this, &AErebePlayerController::MoveForwardInput);
+	//InputComponent->BindAxis("MoveRight", this, &AErebePlayerController::MoveRightInput);
+	//
+	///** 
+	//  * We have 2 versions of the rotation bindings to handle different kinds of devices differently
+	//  * "turn" handles devices that provide an absolute delta, such as a mouse.
+	//  * "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
+	//*/
+	//InputComponent->BindAxis("Turn", this, &AErebePlayerController::AddYawInput);
+	//InputComponent->BindAxis("TurnRate", this, &AErebePlayerController::TurnAtRateInput);
+	//InputComponent->BindAxis("LookUp", this, &AErebePlayerController::AddPitchInput);
+	//InputComponent->BindAxis("LookUpRate", this, &AErebePlayerController::LookUpAtRateInput);
 
 	/** Focus Input */
 	InputComponent->BindAction("Focus", IE_Pressed, this, &AErebePlayerController::FocusInput);
