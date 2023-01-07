@@ -3,36 +3,46 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/InteractiveComponent/InteractiveComponent_Basic.h"
+#include "Components/ActorComponent.h"
+#include "Structures/Dialogues/DialogueStruct.h"
+
 #include "DialogueComponent_Basic.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDialogueBasicChange, FText, CurrentText);
+class UDataTable;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDialogueCallSignature, FDialogueStruct, DialogueData);
+
+/**
+ * Dialogue Component Basic
+ * Part of the Dialogue system
+ * Child of UActorComponent
+ *
+ * Use a Widget to display a text for the player
+ * The data used by this component is load from the data table set in @DialogueTable
+ *
+ */
 UCLASS(ClassGroup = ("Dialogue"), meta = (BlueprintSpawnableComponent), Blueprintable, BlueprintType)
-class EREBE_API UDialogueComponent_Basic : public UInteractiveComponent_Basic
+class EREBE_API UDialogueComponent_Basic : public UActorComponent
 {
 	GENERATED_BODY()
 
+		/**-----------------	Variable Part		-----------------*/
 protected:
-	/** Dialogue widget build and used by this object maybe later will only use the owning by the player */
-	UPROPERTY(Category = "Dialogue", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		class UUserWidget* DialogueWidget;
-
-	/** Class of Dialogue widget used by this object need to be set in the editor or in the blueprint class */
-	UPROPERTY(Category = "Dialogue", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		TSubclassOf<class UUserWidget> DialogueWidgetClass;
 
 	/** Dialogue table stock all NPC's lines need to be set in the editor or in the blueprint class */
 	UPROPERTY(Category = "Dialogue", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		class UDataTable* DialogueTable;
+		TObjectPtr<UDataTable> DialogueTable;
 
-	/** Saved interactor  */
+	/** Saved name for this Signpost  */
 	UPROPERTY(Category = "Dialogue", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		UDialogueComponent_Basic* SavedDialoguer;
+		FDialogueStruct CurrentDialogue;
 
 	/** Saved name for this NPC dialogues  */
 	UPROPERTY(Category = "Dialogue", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		TArray<FName> DialoguesName;
+		TArray<FDialogueStruct> DialoguesSaved;
+
+	UPROPERTY(Category = "Dialogue", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		TMap<int32, int32> NbLineForConversation;
 
 	/** Saved line for the NPC  */
 	UPROPERTY(Category = "Dialogue", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -50,65 +60,139 @@ protected:
 	UPROPERTY(Category = "Dialogue", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		int32 CurrentLine;
 
-	UPROPERTY(BlueprintAssignable, BlueprintCallable)
-		FDialogueBasicChange OnDialogueLineChange;
+	/** Should this component try to load data table in begin */
+	UPROPERTY(Category = "Dialogue", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		bool bLoadDataInBegin = true;
 
+	/** Did this component load his dialogue from his table */
+	UPROPERTY(Category = "Dialogue", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		bool bLoaded = false;
+
+	/** Should this component try to link himself to the ui */
+	UPROPERTY(Category = "Dialogue", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		bool bSearchForUI = false;
+
+	/** Did this component is engaged in a discussion */
+	UPROPERTY(Category = "Dialogue", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		bool bIsEngaged = false;
+
+
+	/**-----------------	Callback Part		-----------------*/
 public:
+
+	/** Called when the signpost line change, for now it's used in the begin interaction */
+	UPROPERTY(BlueprintAssignable, BlueprintCallable)
+		FDialogueCallSignature OnDialogueChangeCall;
+
+	/** Called when a dialogue have the special event handle set as true is call */
+	UPROPERTY(BlueprintAssignable, BlueprintCallable)
+		FDialogueCallSignature OnDialogueSpecialEventCall;
+
+	/** Called when a dialogue have the special event handle set as true is uncall */
+	UPROPERTY(BlueprintAssignable, BlueprintCallable)
+		FDialogueCallSignature OnDialogueSpecialEventUncall;
+
+	/** Called when the signpost call for being display, for now it's used in the begin interaction */
+	UPROPERTY(BlueprintAssignable, BlueprintCallable)
+		FDialogueCallSignature OnDialogueEngagedCall;
+
+	/** Called when the signpost call for being hide, for now it's used in the end / abort interaction */
+	UPROPERTY(BlueprintAssignable, BlueprintCallable)
+		FDialogueCallSignature OnDialogueDisengagedCall;
+
+
+	/**-----------------	Constructor Part		-----------------*/
+public:
+
 	// Sets default values for this component's properties
 	UDialogueComponent_Basic();
 
+	/**-----------------	Actor Component Function Part		-----------------*/
 protected:
+
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-public:
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	// Called when the game starts
+	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
+	/**-----------------	Data Function Part		-----------------*/
+public:
+
+	UFUNCTION(BlueprintCallable)
+	virtual bool LoadDataTable();
+
+	UFUNCTION(BlueprintCallable)
+		virtual void ChangeDataTable(UDataTable* NewDataTable);
+
+	/**-----------------	Dialogue Function Part		-----------------*/
 protected:
 
+	/** Update saved struct using the Dialogue Table, DialoguesNames and Current Line  */
 	UFUNCTION(BlueprintCallable)
-		virtual void ChangeVisibiltyWidget(ESlateVisibility Visibility, UDialogueComponent_Basic* OtherDialoguer);
-
-	UFUNCTION(BlueprintCallable)
-		virtual FText GetCurrentDialogueLine();
-
-	UFUNCTION(BlueprintCallable)
-		virtual void InitializeDialogue(UDialogueComponent_Basic* OtherDialoguer);
-
-	UFUNCTION(BlueprintCallable)
-		virtual void IncrementeDialogue(UDialogueComponent_Basic* OtherDialoguer);
-
-	UFUNCTION(BlueprintCallable)
-		virtual void UpdateDialogue(UDialogueComponent_Basic* OtherDialoguer);
-
-	UFUNCTION(BlueprintCallable)
-		virtual void StopDialogue();
+		virtual void UpdateDialogue();
 
 public:
-	/** Function called by the InteractiveInterface will be useful in case a child class on this one want to change the order for the interaction, or the interaction effect */
-
-	/** Read the text displayed by this object widget / make it invisible if the text is already visible */
-	UFUNCTION(BlueprintCallable)
-		virtual void StartConversation_Interaction(UDialogueComponent_Basic* OtherDialoguer);
-	/** Block the reading if the character is behind the object or not in the front */
-	UFUNCTION(BlueprintCallable)
-		virtual bool CanStartConversation_Interaction(UDialogueComponent_Basic* OtherDialoguer);
-	/** Return a text with a 'Read' in content maybe will take localization in the future*/
-	UFUNCTION(BlueprintCallable)
-		virtual FName GetStartConversationActionName_Interaction();
-	/** Stop the text display and clear the SavedDialoguer */
-	UFUNCTION(BlueprintCallable)
-		virtual void StopConversation_Interaction(UDialogueComponent_Basic* OtherDialoguer);
-	/** Try to start a conversation */
-	UFUNCTION(BlueprintCallable)
-		virtual bool TryConversation_Interaction(UDialogueComponent_Basic* OtherDialoguer);
 
 	UFUNCTION(BlueprintCallable)
-		bool IsInDialogue() { return SavedDialoguer != nullptr; }
+		virtual bool ChangeDialogue(int32 NewConversationID, int32 NewLineNumber);
+
+	UFUNCTION(BlueprintCallable)
+		virtual bool ChangeLine(int32 NewLineNumber);
+
+	UFUNCTION(BlueprintCallable)
+		virtual bool NextLine();
+
+	UFUNCTION(BlueprintCallable)
+		virtual bool ChangeConversation(int32 NewConversationID);
+
+	UFUNCTION(BlueprintCallable)
+		virtual bool CanChangeDialogue(int32 NewConversationID, int32 NewLineNumber);
+
+	UFUNCTION(BlueprintCallable)
+		virtual bool CanChangeLine(int32 NewLineNumber);
+
+	UFUNCTION(BlueprintCallable)
+		virtual bool CanNextLine();
+
+	UFUNCTION(BlueprintCallable)
+		virtual bool CanChangeConversation(int32 NewConversationID);
+
+	/**-----------------	Engage Function Part		-----------------*/
 public:
 
-	FORCEINLINE UDialogueComponent_Basic* GetSavedDialoger() { return SavedDialoguer; };
-	FORCEINLINE class UUserWidget* GetDialogueWidget() { return DialogueWidget; };
+	UFUNCTION(BlueprintCallable)
+		virtual void EngageDialogue();
+
+	UFUNCTION(BlueprintCallable)
+		virtual void DisengageDialogue();
+
+	FORCEINLINE bool IsEngaged() { return bIsEngaged; }
+
+
+	/**-----------------	Widget Function Part		-----------------*/
+protected:
+
+	/**
+	* Will try to link himself to the ui
+	* Need to have @bSearchForUI as true
+	* The gameplay should'nt try to call the ui so it's better if set as false
+	*/
+	UFUNCTION(BlueprintCallable)
+		virtual void RequestLinkToWidget();
+
+	/**
+	* Will try to break link himself to the ui
+	* Need to have @bSearchForUI as true
+	* The gameplay should'nt try to call the ui so it's better if set as false
+	*/
+	UFUNCTION(BlueprintCallable)
+		virtual void RemoveLinkToWidget();
+
+	/**-----------------	Accessor Part		-----------------*/
+public:
+
+	/** Return the signpost struct */
+	FORCEINLINE FDialogueStruct GetCurrentDialogue() const { return CurrentDialogue; }
 
 };

@@ -2,12 +2,13 @@
 
 
 #include "Components/DialogueComponent/DialogueComponent_Basic.h"
-#include "Blueprint/UserWidget.h"
-#include "Runtime/UMG/Public/UMG.h"
 #include "Engine/World.h"
-#include "GameFramework/PlayerController.h"
-#include "Structures/Dialogues/DialogueStruct.h"
+#include "GameFramework/GameModeBase.h"
+#include "Components/WidgetComponent/WidgetsComponent_Manager.h"
+#include "UserWidgets/UW_Dialogue.h"
 #include "Engine/DataTable.h"
+
+/**-----------------	Constructor Part		-----------------*/
 
 // Sets default values for this component's properties
 UDialogueComponent_Basic::UDialogueComponent_Basic()
@@ -16,36 +17,41 @@ UDialogueComponent_Basic::UDialogueComponent_Basic()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	EInteractionType = EInteractionTypes::INTERACTTYPES_Dialogue;
-
 	ComponentTags.Add(FName(TEXT("Dialogue")));
-	// ...
 }
 
+/**-----------------	Actor Component Function Part		-----------------*/
 
 // Called when the game starts
 void UDialogueComponent_Basic::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UWorld* World = GetWorld();
-
-	if (World != nullptr)
+	if (bLoadDataInBegin)
 	{
-
-		APlayerController* PC = GetWorld()->GetFirstPlayerController();
-
-		if (IsValid(PC))
-		{
-			if (DialogueWidgetClass != nullptr)
-			{
-				DialogueWidget = UUserWidget::CreateWidgetInstance(*PC, DialogueWidgetClass, FName(TEXT("DialogueWidget")));
-				DialogueWidget->AddToViewport();
-				DialogueWidget->SetVisibility(ESlateVisibility::Collapsed);
-			}
-		}
+		LoadDataTable();
 	}
 
+	if (bSearchForUI)
+	{
+		RequestLinkToWidget();
+	}
+}
+
+void UDialogueComponent_Basic::EndPlay(EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	if (bSearchForUI)
+	{
+		RemoveLinkToWidget();
+	}
+}
+
+/**-----------------	Data Function Part		-----------------*/
+
+bool UDialogueComponent_Basic::LoadDataTable()
+{
 	if (DialogueTable != nullptr)
 	{
 		TArray<FName> RowNames = DialogueTable->GetRowNames();
@@ -60,129 +66,191 @@ void UDialogueComponent_Basic::BeginPlay()
 
 				if (CurrentDialog != nullptr && NPC_ID == CurrentDialog->NPC_ID)
 				{
-					DialoguesName.Add(Name);
+					DialoguesSaved.Add(*CurrentDialog);
+
+					if (NbLineForConversation.Contains(CurrentDialog->Conversation_ID))
+					{
+						if (NbLineForConversation[CurrentDialog->Conversation_ID] < CurrentDialog->Line_ID)
+						{
+							NbLineForConversation[CurrentDialog->Conversation_ID] = CurrentDialog->Line_ID;
+						}
+					}
+					else
+					{
+						NbLineForConversation.Add(CurrentDialog->Conversation_ID, CurrentDialog->Line_ID);
+					}
+				}
+			}
+
+			bLoaded = true;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void UDialogueComponent_Basic::ChangeDataTable(UDataTable* NewDataTable)
+{
+	if (IsValid(NewDataTable))
+	{
+		DialogueTable = NewDataTable;
+		DialoguesSaved.Empty(DialoguesSaved.Num());
+		NbLineForConversation.Empty(NbLineForConversation.Num());
+
+		LoadDataTable();
+	}
+}
+
+/**-----------------	Dialogue Function Part		-----------------*/
+
+void UDialogueComponent_Basic::UpdateDialogue()
+{
+	if (bLoaded)
+	{
+		for (auto& it : DialoguesSaved)
+		{
+			if (it.Conversation_ID == Conversation_ID && it.Line_ID == CurrentLine)
+			{
+				if (CurrentDialogue.bIsSpeacialEvent)
+				{
+					OnDialogueSpecialEventUncall.Broadcast(CurrentDialogue);
+				}
+
+				CurrentDialogue = it;
+				CurrentText = it.Dialogue;
+				OnDialogueChangeCall.Broadcast(CurrentDialogue);
+
+				if (CurrentDialogue.bIsSpeacialEvent)
+				{
+					OnDialogueSpecialEventCall.Broadcast(CurrentDialogue);
+				}
+
+				if (!IsEngaged())
+				{
+					EngageDialogue();
+				}
+				
+				return;
+			}
+		}
+	}
+}
+
+bool UDialogueComponent_Basic::ChangeDialogue(int32 NewConversationID, int32 NewLineNumber)
+{
+	if (CanChangeDialogue(NewConversationID, NewLineNumber))
+	{
+		Conversation_ID = NewConversationID;
+		CurrentLine = NewLineNumber;
+
+		UpdateDialogue();
+
+		return true;
+	}
+
+	return false;
+}
+
+bool UDialogueComponent_Basic::ChangeLine(int32 NewLineNumber)
+{
+	return ChangeDialogue(Conversation_ID, NewLineNumber);
+}
+
+bool UDialogueComponent_Basic::NextLine()
+{
+	return ChangeLine(CurrentLine + 1);
+}
+
+bool UDialogueComponent_Basic::ChangeConversation(int32 NewConversationID)
+{
+	return ChangeDialogue(NewConversationID, 1);
+}
+
+bool UDialogueComponent_Basic::CanChangeDialogue(int32 NewConversationID, int32 NewLineNumber)
+{
+	if (bLoaded && NbLineForConversation.Contains(NewConversationID))
+	{
+		return NbLineForConversation[NewConversationID] >= NewLineNumber;
+	}
+
+	return false;
+}
+
+bool UDialogueComponent_Basic::CanChangeLine(int32 NewLineNumber)
+{
+	return CanChangeDialogue(Conversation_ID, NewLineNumber);
+}
+
+bool UDialogueComponent_Basic::CanNextLine()
+{
+	return CanChangeLine(CurrentLine + 1);
+}
+
+bool UDialogueComponent_Basic::CanChangeConversation(int32 NewConversationID)
+{
+	return CanChangeDialogue(NewConversationID, 1);
+}
+
+/**-----------------	Engage Function Part		-----------------*/
+
+void UDialogueComponent_Basic::EngageDialogue()
+{
+	bIsEngaged = true;
+	OnDialogueEngagedCall.Broadcast(CurrentDialogue);
+}
+
+void UDialogueComponent_Basic::DisengageDialogue()
+{
+	bIsEngaged = false;
+	OnDialogueDisengagedCall.Broadcast(CurrentDialogue);
+}
+
+/**-----------------	Widget Function Part		-----------------*/
+
+void UDialogueComponent_Basic::RequestLinkToWidget()
+{
+	if (bSearchForUI && GetWorld() != nullptr)
+	{
+		auto GM = GetWorld()->GetAuthGameMode();
+
+		if (IsValid(GM))
+		{
+			UWidgetsComponent_Manager* WidgetManager = Cast<UWidgetsComponent_Manager>(GM->GetComponentByClass(UWidgetsComponent_Manager::StaticClass()));
+
+			if (IsValid(WidgetManager))
+			{
+				UUW_Dialogue* WidgetDialogue = WidgetManager->GetDialogueWidget();
+
+				if (IsValid(WidgetDialogue))
+				{
+					WidgetDialogue->AddDialogueComponent(this);
 				}
 			}
 		}
 	}
 }
 
-
-// Called every frame
-void UDialogueComponent_Basic::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UDialogueComponent_Basic::RemoveLinkToWidget()
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
-}
-
-void UDialogueComponent_Basic::ChangeVisibiltyWidget(ESlateVisibility Visibility, UDialogueComponent_Basic* OtherDialoguer)
-{
-	DialogueWidget->SetVisibility(Visibility);
-	SavedDialoguer = OtherDialoguer;
-}
-
-FText UDialogueComponent_Basic::GetCurrentDialogueLine()
-{
-	return CurrentText;
-}
-
-void UDialogueComponent_Basic::InitializeDialogue(UDialogueComponent_Basic* OtherDialoguer)
-{
-	CurrentLine = 1;
-	ChangeVisibiltyWidget(ESlateVisibility::Visible, OtherDialoguer);
-	UpdateDialogue(OtherDialoguer);
-}
-
-void UDialogueComponent_Basic::IncrementeDialogue(UDialogueComponent_Basic* OtherDialoguer)
-{
-	CurrentLine++;
-
-	UpdateDialogue(OtherDialoguer);
-}
-
-void UDialogueComponent_Basic::UpdateDialogue(UDialogueComponent_Basic* OtherDialoguer)
-{
-	if (DialogueTable != nullptr)
+	if (bSearchForUI && GetWorld() != nullptr)
 	{
-		if (CurrentLine <= 0)
+		auto GM = GetWorld()->GetAuthGameMode();
+
+		if (IsValid(GM))
 		{
-			InitializeDialogue(OtherDialoguer);
-		}
+			UWidgetsComponent_Manager* WidgetManager = Cast<UWidgetsComponent_Manager>(GM->GetComponentByClass(UWidgetsComponent_Manager::StaticClass()));
 
-		FDialogueStruct* SelectedDialogue = nullptr;
-
-		for (auto& DialogueName : DialoguesName)
-		{
-			SelectedDialogue = DialogueTable->FindRow<FDialogueStruct>(DialogueName, "");
-			if (SelectedDialogue->Conversation_ID == Conversation_ID && SelectedDialogue->Line_ID == CurrentLine)
+			if (IsValid(WidgetManager))
 			{
-				CurrentText = SelectedDialogue->Dialogue;
-				OnDialogueLineChange.Broadcast(CurrentText);
-				return;
-			}
-		}
+				UUW_Dialogue* WidgetDialogue = WidgetManager->GetDialogueWidget();
 
-		StopDialogue();
-	}
-}
-
-void UDialogueComponent_Basic::StopDialogue()
-{
-	CurrentLine = 0;
-	CurrentText = FText();
-	ChangeVisibiltyWidget(ESlateVisibility::Collapsed, nullptr);
-}
-
-void UDialogueComponent_Basic::StartConversation_Interaction(UDialogueComponent_Basic* OtherDialoguer)
-{
-	if (OtherDialoguer != nullptr)
-	{
-		if (IsValid(DialogueWidget))
-		{
-			if (DialogueWidget->IsVisible())
-			{
-				IncrementeDialogue(OtherDialoguer);
-			}
-			else
-			{
-				InitializeDialogue(OtherDialoguer);
+				if (IsValid(WidgetDialogue))
+				{
+					WidgetDialogue->RemoveDialogueComponent(this);
+				}
 			}
 		}
 	}
 }
 
-bool UDialogueComponent_Basic::CanStartConversation_Interaction(UDialogueComponent_Basic* OtherDialoguer)
-{
-	if (OtherDialoguer != nullptr && OtherDialoguer == SavedDialoguer)
-	{
-		return true;
-	}
-	else if (OtherDialoguer != nullptr)
-	{
-		return true;
-	}
-
-	return false;
-}
-
-FName UDialogueComponent_Basic::GetStartConversationActionName_Interaction()
-{
-	return FName(TEXT("Conversation"));
-}
-
-void UDialogueComponent_Basic::StopConversation_Interaction(UDialogueComponent_Basic* OtherDialoguer)
-{
-	StopDialogue();
-}
-
-bool UDialogueComponent_Basic::TryConversation_Interaction(UDialogueComponent_Basic* OtherDialoguer)
-{
-	if (CanStartConversation_Interaction(OtherDialoguer))
-	{
-		StartConversation_Interaction(OtherDialoguer);
-		return true;
-	}
-
-	return false;
-}

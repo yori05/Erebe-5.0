@@ -15,7 +15,7 @@ enum class EInteractionTypes : uint8
 	/**
 	*  Undefinned default value shoulnd be used as it
 	*/
-	INTERACTTYPES_Undefinned = 0 UMETA(DisplayName = "Undefinned"),
+	INTERACTTYPES_Undefinned = 0 UMETA(DisplayName = "Undefinned", UseDefault),
 
 	/**
 	* Signpost
@@ -31,6 +31,13 @@ enum class EInteractionTypes : uint8
 	* Open Door
 	*/
 	INTERACTTYPES_OpenDoor UMETA(DisplayName = "OpenDoor"),
+
+
+	/**
+	* Custom interaction
+	* Leave this enum state at the last one 
+	*/
+	INTERACTTYPES_CustomInteraction UMETA(DisplayName = "CustomInteraction"),
 
 	/** Size of this enum can be used to know the number of state this enum give access to. In case we want make a enum encapsulate this one could be used on the first one of the new enum */
 	INTERACTTYPES_Max UMETA(Hidden),

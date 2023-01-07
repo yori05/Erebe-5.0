@@ -26,5 +26,11 @@ public:
 	int32 Line_ID;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FText DialoguerName;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	FText Dialogue;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	bool bIsSpeacialEvent = false;
 };
