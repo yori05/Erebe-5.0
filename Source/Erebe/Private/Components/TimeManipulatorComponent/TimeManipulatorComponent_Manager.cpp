@@ -11,6 +11,9 @@ UTimeManipulatorComponent_Manager::UTimeManipulatorComponent_Manager()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
+	ComponentTags.Add(TEXT("TimeManipulator"));
+	LaunchForwardTime();
+
 	// ...
 }
 
@@ -83,6 +86,24 @@ void UTimeManipulatorComponent_Manager::UpdateTime(float _DeltaTime)
 	}
 }
 
+void UTimeManipulatorComponent_Manager::LaunchFastBackwardTime()
+{
+	if (CanLaunchFastBackwardTime())
+	{
+		ChangeTimeState(ETimeStates::TIMESTATES_FastBackward);
+	}
+}
+
+bool UTimeManipulatorComponent_Manager::CanLaunchFastBackwardTime()
+{
+	if (!IsInFastBackwardTimeState())
+	{
+		return bCanFastTimeState;
+	}
+
+	return false;
+}
+
 void UTimeManipulatorComponent_Manager::LaunchBackwardTime()
 {
 	if (CanLaunchBackwardTime())
@@ -137,6 +158,24 @@ bool UTimeManipulatorComponent_Manager::CanLaunchForwardTime()
 	return false;
 }
 
+void UTimeManipulatorComponent_Manager::LaunchFastForwardTime()
+{
+	if (CanLaunchFastForwardTime())
+	{
+		ChangeTimeState(ETimeStates::TIMESTATES_FastForward);
+	}
+}
+
+bool UTimeManipulatorComponent_Manager::CanLaunchFastForwardTime()
+{
+	if (!IsInFastForwardTimeState())
+	{
+		return bCanFastTimeState;
+	}
+
+	return false;
+}
+
 void UTimeManipulatorComponent_Manager::MoveBackTime()
 {
 	if (CanMoveBackTime())
@@ -149,12 +188,21 @@ void UTimeManipulatorComponent_Manager::MoveBackTime()
 		{
 			LaunchBackwardTime();
 		}
+		else if (IsInBackwardTimeState())
+		{
+			LaunchFastBackwardTime();
+		}
 	}
 }
 
 bool UTimeManipulatorComponent_Manager::CanMoveBackTime()
 {
-	return !IsInBackwardTimeState();
+	if (IsInBackwardTimeState())
+	{
+		return bCanFastTimeState;
+	}
+
+	return !IsInFastBackwardTimeState();
 }
 
 void UTimeManipulatorComponent_Manager::MoveFrontTime()
@@ -169,12 +217,21 @@ void UTimeManipulatorComponent_Manager::MoveFrontTime()
 		{
 			LaunchForwardTime();
 		}
+		else if (IsInForwardTimeState())
+		{
+			LaunchFastForwardTime();
+		}
 	}
 }
 
 bool UTimeManipulatorComponent_Manager::CanMoveFrontTime()
 {
-	return !IsInForwardTimeState();
+	if (IsInForwardTimeState())
+	{
+		return bCanFastTimeState;
+	}
+
+	return !IsInFastForwardTimeState();
 }
 
 void UTimeManipulatorComponent_Manager::ChangeTimeState(ETimeStates _NewTimeState)
@@ -187,6 +244,9 @@ void UTimeManipulatorComponent_Manager::ChangeTimeState(ETimeStates _NewTimeStat
 
 	switch (ETimeState)
 	{
+	case ETimeStates::TIMESTATES_FastForward:
+		FastForwardTime();
+		break;
 	case ETimeStates::TIMESTATES_Forward:
 		ForwardTime();
 		break;
@@ -196,29 +256,47 @@ void UTimeManipulatorComponent_Manager::ChangeTimeState(ETimeStates _NewTimeStat
 	case ETimeStates::TIMESTATES_Backward:
 		BackwardTime();
 		break;
-	case ETimeStates::TIMESTATES_Max:
+	case ETimeStates::TIMESTATES_FastBackward:
+		FastBackwardTime();
 		break;
 	default:
 		break;
 	}
 }
 
+
+void UTimeManipulatorComponent_Manager::FastBackwardTime()
+{
+	GetOwner()->CustomTimeDilation = FastTimeRatio;
+	ReceiveFastBackwardTime();
+	OnFastBackwardTimeState.Broadcast(FastTimeRatio);
+}
+
 void UTimeManipulatorComponent_Manager::BackwardTime()
 {
-	OnBackwardTimeState.Broadcast();
+	GetOwner()->CustomTimeDilation = 1.f;
 	ReceiveBackwardTime();
+	OnBackwardTimeState.Broadcast();
 }
 
 void UTimeManipulatorComponent_Manager::StopTime()
 {
-	OnStopTimeState.Broadcast();
+	GetOwner()->CustomTimeDilation = 1.f;
 	ReceiveStopTime();
+	OnStopTimeState.Broadcast();
 }
 
 void UTimeManipulatorComponent_Manager::ForwardTime()
 {
-	OnForwardTimeState.Broadcast();
+	GetOwner()->CustomTimeDilation = 1.f;
 	ReceiveForwardTime();
+	OnForwardTimeState.Broadcast();
 }
 
+void UTimeManipulatorComponent_Manager::FastForwardTime()
+{
+	GetOwner()->CustomTimeDilation = FastTimeRatio;
+	ReceiveFastBackwardTime();
+	OnFastBackwardTimeState.Broadcast(FastTimeRatio);
+}
 

@@ -11,22 +11,32 @@
 class UTimeManipulatorComponent_Basic;
 
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FChangeTimeStateEventSignatureT, TEnumAsByte<ETimeStates>, NewTimeState, TEnumAsByte<ETimeStates>, PreviousTimeState);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FChangeTimeStateEventSignature, ETimeStates, NewTimeState, ETimeStates, PreviousTimeState);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAnnonceTimeStateEventSignatureT);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FFastTimeEventSignature, float, SpeedRatio);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FTimeStateEventSignature);
 
 /**
 * A TimeManipulatorComponent_Manager
 * Part of the Time Manipulator system
-* This component should be add on a game mode cause the components whome will search for him will try to access it from a game mode
+* 
+* This component should be add on a game mode because the components whome will search for him will try to access it from a game mode
 * A component used to manage other Time manipulator components, these component are add on every component that should use Time manipulator system
 * See @UTimeManipulatorComponent_Basic or child of this class for component using it.
 * He save and direct Time manipulator component on other actor, tell them when come back in time, hold or go forward in time
 * 
-* ToDo : Function to synchronise component, send them time saved and launch update on it if needed.
+* Sup feature / Bug fix :
+* 
+* [Done] : 
+* -> Stop it when TimeSaved go / try to go under 0
+* 
+* [ToDo] : 
+* ->Function to synchronise component, send them time saved and launch update on it if needed.
 * -> synchronise time step, allow a common time step
 * -> curve to smothe the slow of movement / acceleration
-* -> Stop it when TimeSaved go / try to go under 0
+* -> add a second TimeSaved for the player and other desynchronise actor
+* 
 */
 UCLASS( ClassGroup=(TimeManipulator), meta=(BlueprintSpawnableComponent) )
 class EREBE_API UTimeManipulatorComponent_Manager : public UActorComponent
@@ -36,52 +46,82 @@ class EREBE_API UTimeManipulatorComponent_Manager : public UActorComponent
 	/**-----------------	Variable Part		-----------------*/
 protected:
 
-	/** Check if the character is in first person or third */
+	/** 
+	* Array of time manipulator component registered
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time Management", meta = (AllowPrivateAccess = "true"))
 		TArray<TObjectPtr<UTimeManipulatorComponent_Basic>> TimeManipulatorComponents;
 
+	/**
+	* Time saved by this component, should be the time used by all the component registered
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time", meta = (AllowPrivateAccess = "true"))
 		float TimeSaved;
 
+	/**
+	* Time elapsed between two step of the time
+	* When this time go over the time step or under 0 time saved is updated
+	* And a call is launch to record on every time manipulator component
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time", meta = (AllowPrivateAccess = "true"))
 		float TimeElapsed = 0.f;
 
+	/**
+	* Time step : time that should elaps between two record on time manipulator component
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time", meta = (AllowPrivateAccess = "true"))
 		float TimeStep = 0.02f;
 
+	/**
+	* Fast Time Ratio : Ratio send and used by TimeManipulator Component when in fast backward / forward time state
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time", meta = (AllowPrivateAccess = "true"))
+		float FastTimeRatio = 5.f;
+
 	/** Used to define the state of Time  */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeManipulator", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Management", meta = (AllowPrivateAccess = "true"))
 		ETimeStates ETimeState;
 
 	/** Block backward time on time try to / go to under zero */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeManipulator", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Management", meta = (AllowPrivateAccess = "true"))
 		bool bBlockOnTimeZero;
 
-
-	/** Block backward time on time try to / go to under zero */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time Management", meta = (AllowPrivateAccess = "true"))
+	/** Should Call update on Time Manipulator Component in the array */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Management", meta = (AllowPrivateAccess = "true"))
 		bool bCallUpdateComponents;
 
+
+	/** Can the time state go to accelerate time state */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Management", meta = (AllowPrivateAccess = "true"))
+		bool bCanFastTimeState = false;
 
 	/**-----------------	Callback Part		-----------------*/
 public:
 
-
 	//Called when the time state backward begin
 	UPROPERTY(BlueprintCallable, BlueprintAssignable)
-		FAnnonceTimeStateEventSignatureT OnBackwardTimeState;
+		FFastTimeEventSignature OnFastBackwardTimeState;
+
+	
+	//Called when the time state backward begin
+	UPROPERTY(BlueprintCallable, BlueprintAssignable)
+		FTimeStateEventSignature OnBackwardTimeState;
 
 	//Called when the time state stop begin
 	UPROPERTY(BlueprintCallable, BlueprintAssignable)
-		FAnnonceTimeStateEventSignatureT OnStopTimeState;
+		FTimeStateEventSignature OnStopTimeState;
 
 	//Called when the time state forward begin
 	UPROPERTY(BlueprintCallable, BlueprintAssignable)
-		FAnnonceTimeStateEventSignatureT OnForwardTimeState;
+		FTimeStateEventSignature OnForwardTimeState;
+
+	//Called when the time state backward begin
+	UPROPERTY(BlueprintCallable, BlueprintAssignable)
+		FFastTimeEventSignature OnFastForwardTimeState;
 
 	//Called when the time state change
 	UPROPERTY(BlueprintCallable, BlueprintAssignable)
-		FChangeTimeStateEventSignatureT OnChangeTimeState;
+		FChangeTimeStateEventSignature OnChangeTimeState;
 
 	/**-----------------	Constructor Part		-----------------*/
 public:
@@ -123,7 +163,21 @@ public:
 		virtual void UpdateTime(float _DeltaTime);
 
 	/**
-	* Launch the replay in case the Time State is not set as TIMESTATES_Backward
+	* Launch the fast replay
+	* Call the function ChangeTimeState to do so
+	*/
+	UFUNCTION(BlueprintCallable)
+		virtual void LaunchFastBackwardTime();
+
+	/**
+	* Check if can launch fast backward time
+	* In case the Time State is not set as TIMESTATES_FastBackward and @bCanFastTimeState is true
+	*/
+	UFUNCTION(BlueprintCallable)
+		virtual bool CanLaunchFastBackwardTime();
+
+	/**
+	* Launch the replay
 	* Call the function ChangeTimeState to do so
 	*/
 	UFUNCTION(BlueprintCallable)
@@ -131,12 +185,13 @@ public:
 
 	/**
 	* Check if can launch backward time
+	* In case the Time State is not set as TIMESTATES_Backward
 	*/
 	UFUNCTION(BlueprintCallable)
 		virtual bool CanLaunchBackwardTime();
 
 	/**
-	* Launch the hold in case the Time State is not set as TIMESTATES_Stop
+	* Launch the hold
 	* Call the function ChangeTimeState to do so
 	*/
 	UFUNCTION(BlueprintCallable)
@@ -144,12 +199,13 @@ public:
 
 	/**
 	* Check if can launch stop time
+	*Iin case the Time State is not set as TIMESTATES_Stop
 	*/
 	UFUNCTION(BlueprintCallable)
 	virtual bool CanLaunchStopTime();
 
 	/**
-	* Launch the replay in case the Time State is not set as TIMESTATES_Forward
+	* Launch the record
 	* Call the function ChangeTimeState to do so
 	*/
 	UFUNCTION(BlueprintCallable)
@@ -157,9 +213,24 @@ public:
 
 	/**
 	* Check if can launch forward time
+	* In case the Time State is not set as TIMESTATES_Forward
 	*/
 	UFUNCTION(BlueprintCallable)
 		virtual bool CanLaunchForwardTime();
+
+	/**
+	* Launch the fast record
+	* Call the function ChangeTimeState to do so
+	*/
+	UFUNCTION(BlueprintCallable)
+		virtual void LaunchFastForwardTime();
+
+	/**
+	* Check if can launch fast forward time
+	* In case the Time State is not set as TIMESTATES_Forward and @bCanFastTimeState is true
+	*/
+	UFUNCTION(BlueprintCallable)
+		virtual bool CanLaunchFastForwardTime();
 
 	/**
 	* Move the time state a state before
@@ -213,6 +284,21 @@ protected:
 		void ReceiveChangeTimeState(ETimeStates _NewTimeState);
 
 	/**
+	* Launch action for the fast backward time state
+	* Call the Delegate @OnFastBackwardTime
+	* Call the Blueprint function ReceiveFastBackwardTime
+	* Called by the ChangeTimeState
+	*/
+	virtual void FastBackwardTime();
+
+	/**
+	* Action for the BlueprintChild of this class
+	* Called by the function FastBackwardTime after ChangeTimeState have been succesfull
+	*/
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "FastBackwardTime"))
+		void ReceiveFastBackwardTime();
+
+	/**
 	* Launch action for the backward time state
 	* Call the Delegate @OnBackwardTime
 	* Call the Blueprint function ReceiveBackwardTime
@@ -257,6 +343,21 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "ForwardTime"))
 		void ReceiveForwardTime();
 
+	/**
+	* Launch action for the Fast Forward time state
+	* Call the Delegate @OnFastForwardTime
+	* Call the Blueprint function ReceiveFastForwardTime
+	* Called by the ChangeTimeState
+	*/
+	virtual void FastForwardTime();
+
+	/**
+	* Action for the BlueprintChild of this class
+	* Called by the function ForwardTime after ChangeTimeState have been succesfull
+	*/
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "FastForwardTime"))
+		void ReceiveFastForwardTime();
+
 	/**-----------------	Accessor Part		-----------------*/
 public:
 
@@ -269,6 +370,12 @@ public:
 	/** Returns Time Saved **/
 	FORCEINLINE float GetTimeSaved() const { return TimeSaved; }
 
+	/** Returns Time Saved **/
+	FORCEINLINE float GetTimeRatio() const { return FastTimeRatio; }
+
+	/** Returns if is in Backward time state **/
+	FORCEINLINE bool IsInFastBackwardTimeState() const { return ETimeState == ETimeStates::TIMESTATES_FastBackward; }
+
 	/** Returns if is in Backward time state **/
 	FORCEINLINE bool IsInBackwardTimeState() const { return ETimeState == ETimeStates::TIMESTATES_Backward; }
 
@@ -277,5 +384,9 @@ public:
 
 	/** Returns if is in Forward time state **/
 	FORCEINLINE bool IsInForwardTimeState() const { return ETimeState == ETimeStates::TIMESTATES_Forward; }
+
+	/** Returns if is in Forward time state **/
+	FORCEINLINE bool IsInFastForwardTimeState() const { return ETimeState == ETimeStates::TIMESTATES_FastForward; }
+
 };
 

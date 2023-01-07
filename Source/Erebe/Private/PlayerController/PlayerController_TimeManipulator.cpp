@@ -3,14 +3,12 @@
 
 #include "PlayerController/PlayerController_TimeManipulator.h"
 #include "Engine/World.h"
-#include "GameMode/GameMode_TimeManipulator.h"
-#include "Actors/TimeManipulatorManager.h"
+#include "GameFramework/GameModeBase.h"
 #include "Components/TimeManipulatorComponent/TimeManipulatorComponent_Manager.h"
 
 APlayerController_TimeManipulator::APlayerController_TimeManipulator(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer)
 {
-
 }
 
 void APlayerController_TimeManipulator::BeginPlay()
@@ -22,16 +20,6 @@ void APlayerController_TimeManipulator::BeginPlay()
 		if (IsValid(GM))
 		{
 			TimeManipCManager = Cast<UTimeManipulatorComponent_Manager>(GM->GetComponentByClass(UTimeManipulatorComponent_Manager::StaticClass()));
-		}
-	}
-
-	if (GetWorld() != nullptr && GetWorld()->GetAuthGameMode() != nullptr)
-	{
-		GMTimeManip = Cast<AGameMode_TimeManipulator>(GetWorld()->GetAuthGameMode());
-		
-		if (GMTimeManip != nullptr)
-		{
-			TimeManipManager = GMTimeManip->GetTimeManipulatorManager();
 		}
 	}
 }
@@ -64,10 +52,7 @@ void APlayerController_TimeManipulator::HoldBackwardTimeInput()
 
 void APlayerController_TimeManipulator::UnholdBackwardTimeInput()
 {
-	if (TimeManipManager != nullptr)
-	{
-		//TimeManipManager->UnholdReplay();
-	}
+
 }
 
 void APlayerController_TimeManipulator::HoldForwardTimeInput()
@@ -80,9 +65,6 @@ void APlayerController_TimeManipulator::HoldForwardTimeInput()
 
 void APlayerController_TimeManipulator::UnholdForwardTimeInput()
 {
-	if (TimeManipManager != nullptr)
-	{
-		//TimeManipManager->UnholdReplay();
-	}
+
 }
 

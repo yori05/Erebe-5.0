@@ -14,4 +14,10 @@ class EREBE_API ACharacter_TimeManipulator : public ACharacter_Basic
 {
 	GENERATED_BODY()
 	
+	/**-----------------	Constructor Part		-----------------*/
+public:
+
+	// Sets default values for this character's properties
+	ACharacter_TimeManipulator(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
 };
