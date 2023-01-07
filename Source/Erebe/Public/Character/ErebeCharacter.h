@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Character/InteractiveCharacter.h"
+#include "Character/Character_Basic.h"
+
 #include "ErebeCharacter.generated.h"
 
 class AWeapon_Base;
@@ -271,7 +273,7 @@ public :
 	/** Returns the boolean to know if the character can fly **/
 	FORCEINLINE bool GetCanFly() const { return bCanFly; }
 	/** Returns if the character is currently using fps or tps **/
-	FORCEINLINE bool GetIsInFirstPerson() const { return bIsInFP; }
+	FORCEINLINE bool IsInFirstPerson() const { return bIsInFP; }
 	/** Returns the boolean to know if the character root motion based animation **/
 	FORCEINLINE bool GetUseRootMotionAnimation() const { return bUseRootMotionAnimation; }
 

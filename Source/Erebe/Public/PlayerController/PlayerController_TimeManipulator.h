@@ -6,8 +6,6 @@
 #include "PlayerController/PlayerController_Basic.h"
 #include "PlayerController_TimeManipulator.generated.h"
 
-class ATimeManipulatorManager;
-class AGameMode_TimeManipulator;
 class UTimeManipulatorComponent_Manager;
 
 /**
@@ -20,13 +18,6 @@ class EREBE_API APlayerController_TimeManipulator : public APlayerController_Bas
 
 /**-----------------	Variable Part		-----------------*/
 protected:
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeManipulator", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<ATimeManipulatorManager> TimeManipManager;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeManipulator", meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<AGameMode_TimeManipulator> GMTimeManip;
-
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeManipulator", meta = (AllowPrivateAccess = "true"))
 		TObjectPtr<UTimeManipulatorComponent_Manager> TimeManipCManager;

@@ -18,7 +18,7 @@
 #include "Weapon/Weapon_Shooting_Base.h"
 #include "Engine/World.h"
 
-DEFINE_LOG_CATEGORY_STATIC(LogCharacterState, Log, All);
+DEFINE_LOG_CATEGORY_STATIC(LogErebeCharacterState, Log, All);
 
 FName AErebeCharacter::HealthComponentName(TEXT("HealthComponent"));
 
@@ -278,33 +278,6 @@ void AErebeCharacter::Punch()
 				}
 			}
 		}
-
-		/*
-		* Actor method depreciate to use the component with tag method
-		* 
-		TSet<AActor*> OverlappingActors;
-		DamageHitbox->GetOverlappingActors(OverlappingActors);
-		
-		if (OverlappingActors.Num() > 0)
-		{
-			UActorComponent* TargetComponent = nullptr;
-			UBasicHealthComponent* TargetHealthComponent = nullptr;
-
-			for (auto& Element : OverlappingActors)
-			{
-				if (Element != this)
-				{
-					TargetComponent = Element->GetComponentByClass(UBasicHealthComponent::StaticClass());
-					TargetHealthComponent = Cast<UBasicHealthComponent>(TargetComponent);
-
-					if (IsValid(TargetHealthComponent))
-					{
-						TargetHealthComponent->ReceiveDamage(1);
-					}
-				}
-			}
-		}
-		*/
 	}
 }
 
@@ -472,7 +445,7 @@ void AErebeCharacter::PerformState(float DeltaTime)
 
 		break;
 	default:
-		UE_LOG(LogCharacterState, Warning, TEXT("%s has unsupported state mode %d"), *GetName(), int32(CharacterState));
+		UE_LOG(LogErebeCharacterState, Warning, TEXT("%s has unsupported state mode %d"), *GetName(), int32(CharacterState));
 		SetCharacterState(EErebeCharacterState::CHARSTATE_Free);
 		break;
 	}

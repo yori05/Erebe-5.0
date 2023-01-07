@@ -47,11 +47,11 @@ void UCombatComponent_Basic::Attack()
 {
 	if (IsValid(CharacterOwner))
 	{
-		bool Test(CharacterOwner->GetIsInFirstPerson());
+		bool Test(CharacterOwner->IsInFirstPerson());
 
 		if (!Test)
 		{
-			CharacterOwner->AllignYawWithCamera();
+			CharacterOwner->CallAllignYawWithCamera();
 		}
 	}
 }
