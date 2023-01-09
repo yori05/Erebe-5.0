@@ -91,7 +91,7 @@ void UIC_Dialogue_Basic::EndInteract()
 {
 	Super::EndInteract();
 
-	if (bInteractionOngoing && IsValid(SavedDialogueComponent))
+	if (IsValid(SavedDialogueComponent))
 	{
 		SavedDialogueComponent->DisengageDialogue();
 	}
@@ -101,7 +101,7 @@ void UIC_Dialogue_Basic::AbortInteract()
 {
 	Super::AbortInteract();
 
-	if (bInteractionOngoing && IsValid(SavedDialogueComponent))
+	if (IsValid(SavedDialogueComponent))
 	{
 		SavedDialogueComponent->DisengageDialogue();
 	}
@@ -163,5 +163,7 @@ void UIC_Dialogue_Basic::BreakLinkDialogueComponent()
 void UIC_Dialogue_Basic::WhenDialogueDisengage(FDialogueStruct DialogueStruct)
 {
 	if (bInteractionOngoing)
+	{
 		StopInteraction();
+	}
 }
