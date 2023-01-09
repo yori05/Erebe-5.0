@@ -157,14 +157,25 @@ void UDoorComponent_Basic::UpdateRatioValue(float _TimeValue)
 
 void UDoorComponent_Basic::OpenCloseDoor()
 {
-	ChangeState();
+	if (GetIsClosing() || GetIsClose())
+	{
+		OpenDoor();
+	}
+	if (GetIsOpenning() || GetIsOpen())
+	{
+		CloseDoor();
+	}
+	else
+	{
+		ChangeState();
+	}
 }
 
 void UDoorComponent_Basic::OpenDoor()
 {
 	if (GetIsClosing() || GetIsClose())
 	{
-		ChangeState();
+		DoorState = EDoorStates::DOORSTATES_Openning;
 	}
 }
 
@@ -173,7 +184,7 @@ void UDoorComponent_Basic::OpenDoorDefault()
 	if (GetIsClosing() || GetIsClose())
 	{
 		bIsOpposedDirection = false;
-		ChangeState();
+		OpenDoor();
 	}
 }
 
@@ -182,7 +193,7 @@ void UDoorComponent_Basic::OpenDoorReverse()
 	if (GetIsClosing() || GetIsClose())
 	{
 		bIsOpposedDirection = true;
-		ChangeState();
+		OpenDoor();
 	}
 }
 
@@ -190,7 +201,7 @@ void UDoorComponent_Basic::CloseDoor()
 {
 	if (GetIsOpenning() || GetIsOpen())
 	{
-		ChangeState();
+		DoorState = EDoorStates::DOORSTATES_Closing;
 	}
 }
 

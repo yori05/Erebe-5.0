@@ -66,7 +66,7 @@ void UIC_DoorOpenner_Basic::BeginInteract()
 {
 	Super::BeginInteract();
 
-	if (bInteractionOngoing)
+	if (bInteractionOngoing && IsValid(SavedDoorComponent))
 	{
 		if (SavedDoorComponent->GetIsClose())
 		{
@@ -76,15 +76,14 @@ void UIC_DoorOpenner_Basic::BeginInteract()
 				float InteractorProjection = FVector::DotProduct(Requestor->GetActorForwardVector(), Owner->GetActorForwardVector());
 
 				// Using the actor projection to check if the actor is behind the door and he push it.
-				if (InteractorProjection > 0)
-				{
-					SavedDoorComponent->OpenDoorDefault();
-				}
-				else
+				if (InteractorProjection < 0)
 				{
 					SavedDoorComponent->OpenDoorReverse();
+					return;
 				}
 			}
+
+			SavedDoorComponent->OpenDoorDefault();
 		}
 		else
 		{
