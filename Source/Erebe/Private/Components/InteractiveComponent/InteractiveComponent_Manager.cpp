@@ -152,8 +152,10 @@ void UInteractiveComponent_Manager::SearchInteractionComponents()
 	if (IsValid(Owner))
 	{
 		TObjectPtr<UInteractiveComponent_Basic> ICBase = nullptr;
+		TArray<UActorComponent*> ICArray;
+		Owner->GetComponents(UInteractiveComponent_Basic::StaticClass(), ICArray);
 
-		for (auto& i : Owner->GetComponentsByClass(UInteractiveComponent_Basic::StaticClass()))
+		for (auto& i : ICArray)
 		{
 			ICBase = Cast<UInteractiveComponent_Basic>(i);
 
